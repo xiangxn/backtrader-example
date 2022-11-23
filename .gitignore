@@ -1,0 +1,25 @@
+# rope configuration
+.cache/
+.DS_Store
+*.log
+__pycache__
+.pytest_cache
+
+# Python
+*.py[co]
+
+## Packages
+*.egg
+*.egg-info
+dist
+venv
+log
+docs/_build
+docs/api
+
+
+## paver generated files
+paver-minilib.zip
+
+config.json
+.env

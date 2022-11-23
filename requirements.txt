@@ -1,0 +1,4 @@
+pandas==1.5.1
+backtrader==1.9.76.123
+matplotlib==3.2.2
+-e git+https://github.com/xiangxn/bt-ccxt-store.git#egg=bt-ccxt-store

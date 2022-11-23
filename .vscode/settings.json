@@ -1,0 +1,8 @@
+{
+  "python.defaultInterpreterPath": "venv/bin/python",
+  "python.formatting.provider": "yapf",
+  "python.formatting.yapfArgs": [
+    "--style",
+    "{column_limit:160,space_inside_brackets:false,arithmetic_precedence_indication:true,blank_line_before_nested_class_or_def:true,spaces_around_dict_delimiters:true}"
+  ]
+}
