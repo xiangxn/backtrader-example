@@ -5,7 +5,7 @@ from data.dataset import CustomDataset
 from strategies.abbration import Abbration
 from strategies.bollkdj import BOLLKDJ
 from strategies.bollema import BollEMA
-from strategies.boll import Boll
+from strategies.boll import BollStrategy
 
 
 class PrintClose(bt.Strategy):
@@ -21,12 +21,12 @@ class PrintClose(bt.Strategy):
 if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
-    cerebro.addstrategy(Boll, period_boll=275, boll_diff=40)
+    cerebro.addstrategy(BollStrategy, period_boll=275, boll_diff=40)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
     # cerebro.addstrategy(BOLLKDJ, boll_period=200, kdj_period=72, kdj_ma1=24, kdj_ma2=24)
 
-    # cerebro.optstrategy(Boll, period_boll=range(250, 300,5), debug=False)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(250, 300,5), debug=False)
 
     # 加载数据
     data = CustomDataset(name="ETH",

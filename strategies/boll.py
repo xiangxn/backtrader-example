@@ -3,7 +3,7 @@ from backtrader import Order
 from datetime import datetime
 
 
-class Boll(bt.Strategy):
+class BollStrategy(bt.Strategy):
     params = (("period_boll", 275), ("boll_diff", 40), ("price_diff", 20), ("production", False), ("debug", True))
 
     def log(self, txt, dt=None):

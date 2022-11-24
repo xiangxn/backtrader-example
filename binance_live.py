@@ -2,7 +2,7 @@ from ccxtbt import CCXTStore
 import backtrader as bt
 from datetime import datetime, timedelta
 from strategies.bollema import BollEMA
-from strategies.boll import Boll
+from strategies.boll import BollStrategy
 from utils.helper import init_env, get_env
 
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # Add the strategy
     # cerebro.addstrategy(TestStrategy)
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(Boll)
+    cerebro.addstrategy(BollStrategy)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
