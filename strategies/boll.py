@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class Boll(bt.Strategy):
-    params = (("period_boll", 275), ("boll_diff", 40), ("price_diff", 20), ("production", False), ("debug", True))
+    params = (("period_boll", 275), ("boll_diff", 40), ("price_stop_loss", 20), ("price_stop_profit", 10), ("production", False), ("debug", True))
 
     def log(self, txt, dt=None):
         if not self.p.debug: return
@@ -17,8 +17,9 @@ class Boll(bt.Strategy):
         self.trade_count = 0
         self.last_price = 0
         self.live_data = False
-        self.stop_limit = False
+        self.stop_profit = False
         self.stop_loss = False
+        self.max_price = 0
 
     def notify_order(self, order):
         self.log(
@@ -88,6 +89,13 @@ class Boll(bt.Strategy):
             else:
                 return
 
+        # 止盈间隔
+        if self.stop_profit:
+            if self.up_across(data) or self.dn_across(data):
+                self.stop_profit = False
+            else:
+                return
+
         # 开仓
         if self.marketposition == 0:
             # 多头
@@ -100,22 +108,40 @@ class Boll(bt.Strategy):
                 self.marketposition = -1
         elif self.marketposition == 1:
             # 止损
-            if self.last_price - data.close[0] > self.p.price_diff:
+            if self.last_price - data.close[0] > self.p.price_stop_loss:
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
+            # 止盈
+            elif self.max_price - data.close[0] > self.p.price_stop_profit:
+                self.close()
+                self.marketposition = 0
+                self.stop_profit = True
+                self.max_price = 0
             elif self.dn_across(data):
                 self.close()
                 self.marketposition = 0
+                self.max_price = 0
+            if data.close[0] > self.max_price:
+                self.max_price = data.close[0]
         elif self.marketposition == -1:
             # 止损
-            if data.close[0] - self.last_price > self.p.price_diff:
+            if data.close[0] - self.last_price > self.p.price_stop_loss:
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
+            # 止盈
+            elif data.close[0] - self.max_price > self.p.price_stop_profit:
+                self.close()
+                self.marketposition = 0
+                self.stop_profit = True
+                self.max_price = 0
             elif self.up_across(data):
                 self.close()
                 self.marketposition = 0
+                self.max_price = 0
+            if data.close[0] < self.max_price:
+                self.max_price = data.close[0]
 
     def stop(self):
-        print('(MA Period_boll %2d) Ending Value %.2f' % (self.p.period_boll, self.broker.getcash()))
+        print('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))

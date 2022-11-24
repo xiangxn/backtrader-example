@@ -21,16 +21,16 @@ class PrintClose(bt.Strategy):
 if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
-    cerebro.addstrategy(Boll, period_boll=275, boll_diff=40)
+    cerebro.addstrategy(Boll, period_boll=275)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
     # cerebro.addstrategy(BOLLKDJ, boll_period=200, kdj_period=72, kdj_ma1=24, kdj_ma2=24)
 
-    # cerebro.optstrategy(Boll, period_boll=range(250, 300,5), debug=False)
+    # cerebro.optstrategy(Boll, period_boll=range(8, 22), debug=False)
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2022-07.csv",
+                         dataname="data/ETHUSDT-1m-2022.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2022, 5, 1),
