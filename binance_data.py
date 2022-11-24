@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2022-07.csv",
+                         dataname="data/ETHUSDT-1m-2022.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2022, 5, 1),

@@ -118,4 +118,4 @@ class Boll(bt.Strategy):
                 self.marketposition = 0
 
     def stop(self):
-        print('(MA Period_boll %2d) Ending Value %.2f' % (self.p.period_boll, self.broker.getcash()))
+        print('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))
