@@ -5,7 +5,7 @@ from backtrader import Order
 
 
 class BOLLKDJStrategy(bt.Strategy):
-    params = (("period_boll", 21), ("boll_mult", 2), ("kdj_period", 9), ("kdj_ma1", 3), ("kdj_ma2", 3), ("price_diff", 20), ("debug", True))
+    params = (("period_boll", 14), ("boll_mult", 2), ("kdj_period", 9), ("kdj_ma1", 3), ("kdj_ma2", 3), ("price_diff", 5), ("boll_diff", 50), ("debug", True))
 
     def log(self, txt, dt=None):
         if not self.p.debug: return
@@ -24,10 +24,12 @@ class BOLLKDJStrategy(bt.Strategy):
         self.boll_signal = 0
         # KDJ信号
         self.kdj_signal = 0
+        # 止损标记
+        self.stop_loss = False
 
     def notify_order(self, order):
         if order.exectype == Order.Market and order.status == Order.Completed:
-            self.last_price = order.executed.price
+            self.position_price = order.executed.price
             self.log(
                 f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
             )
@@ -55,13 +57,22 @@ class BOLLKDJStrategy(bt.Strategy):
         elif condition1 > 0 and condition2 < 0 and self.kdj.D[0] >= 65:
             self.kdj_signal = -1  # 下穿(卖出信号)
 
-    def dn_across(self, data):
+    def dn_across(self):
+        data = self.datas[0]
         return data.close[-1] > self.boll.mid[-1] and data.close[0] < self.boll.mid[0]
 
-    def up_across(self, data):
+    def up_across(self):
+        data = self.datas[0]
         return data.close[-1] < self.boll.mid[-1] and data.close[0] > self.boll.mid[0]
 
     def next(self):
+        # 止损间隔
+        if self.stop_loss:
+            if self.up_across() or self.dn_across():
+                self.stop_loss = False
+            else:
+                return
+
         # BOLL信号检查
         self.check_boll_signal()
         # KDJ信号
@@ -69,34 +80,53 @@ class BOLLKDJStrategy(bt.Strategy):
 
         # 未持仓
         if self.marketposition == 0:
+            diff = self.boll.top[0] - self.boll.bot[0]
             # 买入
-            if self.boll_signal > 0 and self.kdj_signal > 0:
+            if self.boll_signal > 0 and self.kdj_signal > 0 and diff > self.p.boll_diff:
                 self.buy(self.datas[0])
                 self.marketposition = 1
                 self.boll_signal = 0
                 self.kdj_signal = 0
             # 卖出
-            elif self.boll_signal < 0 and self.kdj_signal < 0:
+            elif self.boll_signal < 0 and self.kdj_signal < 0 and diff > self.p.boll_diff:
                 self.sell(self.datas[0])
                 self.marketposition = -1
                 self.boll_signal = 0
                 self.kdj_signal = 0
         # 已持空仓
         elif self.marketposition == -1:
-            # if self.boll_signal > 0 and self.kdj_signal > 0:
-            if self.dn_across(self.datas[0]):
+            # 止损
+            if self.datas[0].close[0] - self.position_price > self.p.price_diff:
                 self.close()
                 self.marketposition = 0
-                self.last_price = 0
+                self.position_price = 0
+                self.boll_signal = 0
+                self.kdj_signal = 0
+                self.stop_loss = True
+            # 止盈
+            # elif self.dn_across():
+            elif self.boll_signal > 0 and self.kdj_signal > 0:
+                self.close()
+                self.marketposition = 0
+                self.position_price = 0
                 self.boll_signal = 0
                 self.kdj_signal = 0
         # 已持多仓
         else:
-            # if self.boll_signal < 0 and self.kdj_signal < 0:
-            if self.up_across(self.datas[0]):
+            # 止损
+            if self.position_price - self.datas[0].close[0] > self.p.price_diff:
                 self.close()
                 self.marketposition = 0
-                self.last_price = 0
+                self.position_price = 0
+                self.boll_signal = 0
+                self.kdj_signal = 0
+                self.stop_loss = True
+            # 止盈
+            # elif self.up_across():
+            elif self.boll_signal < 0 and self.kdj_signal < 0:
+                self.close()
+                self.marketposition = 0
+                self.position_price = 0
                 self.boll_signal = 0
                 self.kdj_signal = 0
 

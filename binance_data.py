@@ -24,14 +24,14 @@ if __name__ == '__main__':
     # cerebro.addstrategy(BollStrategy, period_boll=275, boll_diff=40)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
-    cerebro.addstrategy(BOLLKDJStrategy, period_boll=48)
+    cerebro.addstrategy(BOLLKDJStrategy)
 
     # cerebro.optstrategy(BollStrategy, period_boll=range(250, 300,5), debug=False)
-    # cerebro.optstrategy(BOLLKDJStrategy, period_boll=48, debug=False)
+    # cerebro.optstrategy(BOLLKDJStrategy, period_boll=range(9,21), debug=False)
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2022-10.csv",
+                         dataname="data/ETHUSDT-1m-2022-05.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2022, 5, 1),
