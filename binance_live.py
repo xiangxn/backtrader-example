@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # IMPORTANT NOTE - Kraken (and some other exchanges) will not return any values
     # for get cash or value if You have never held any BNB coins in your account.
     # So switch BNB to a coin you have funded previously if you get errors
-    store = CCXTStore(exchange='binanceusdm', currency='USDT', config=config, retries=20, debug=False)
+    store = CCXTStore(exchange='binanceusdm', currency='USDT', config=config, retries=100, debug=False)
 
     # Get the broker and pass any kwargs if needed.
     # ----------------------------------------------
