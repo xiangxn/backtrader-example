@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("boll_diff", 40), ("price_diff", 20), ("production", False), ("debug", True))
+    params = (("period_boll", 275), ("price_diff", 20), ("production", False), ("debug", True))
 
     def log(self, txt, dt=None):
         if not self.p.debug: return
@@ -91,11 +91,11 @@ class BollStrategy(bt.Strategy):
         # 开仓
         if self.marketposition == 0:
             # 多头
-            if self.close_gt_up(data) and self.gt_last_mid(data) and diff > self.p.boll_diff:
+            if self.close_gt_up(data) and self.gt_last_mid(data):
                 self.buy(data)
                 self.marketposition = 1
             # 空头
-            if self.close_lt_dn(data) and self.lt_last_mid(data) and diff > self.p.boll_diff:
+            if self.close_lt_dn(data) and self.lt_last_mid(data):
                 self.sell(data)
                 self.marketposition = -1
         elif self.marketposition == 1:
