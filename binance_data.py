@@ -24,10 +24,10 @@ if __name__ == '__main__':
     # cerebro.addstrategy(BollStrategy, period_boll=275, boll_diff=40)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
-    cerebro.addstrategy(BOLLKDJStrategy, period_boll=48)
+    cerebro.addstrategy(BOLLKDJStrategy, boll_period=53)
 
     # cerebro.optstrategy(BollStrategy, period_boll=range(250, 300,5), debug=False)
-    # cerebro.optstrategy(BOLLKDJStrategy, period_boll=48, debug=False)
+    # cerebro.optstrategy(BOLLKDJStrategy, boll_period=range(45, 63), debug=False)
 
     # 加载数据
     data = CustomDataset(name="ETH",
