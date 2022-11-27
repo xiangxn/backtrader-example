@@ -26,11 +26,11 @@ def get_env(key, default=''):
 
 def get_email():
     email = {
-        "host": get_env("HOST"),
-        "port": get_env("PORT"),
-        "from": get_env("FROM"),
-        "to": get_env("TO"),
-        "user": get_env("USER"),
-        "password": get_env("PASSWORD")
+        "host": get_env("EMAIL_HOST"),
+        "port": get_env("EMAIL_PORT"),
+        "from": get_env("EMAIL_FROM"),
+        "to": get_env("EMAIL_TO"),
+        "user": get_env("EMAIL_USER"),
+        "password": get_env("EMAIL_PASSWORD")
     }
     return email

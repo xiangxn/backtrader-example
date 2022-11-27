@@ -13,6 +13,8 @@ class Logger(object):
         self.logger = logging.getLogger("%s_logger" % name)
         if not email:
             email = get_email()
+            if not email['user']:
+                email = None
         if self.is_debug:
             self.logger.setLevel(logging.DEBUG)
         else:
