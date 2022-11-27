@@ -21,7 +21,7 @@ class PrintClose(bt.Strategy):
 if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
-    cerebro.addstrategy(BollStrategy, period_boll=275)
+    cerebro.addstrategy(BollStrategy, period_boll=275, live=True)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
     # cerebro.addstrategy(BOLLKDJStrategy, boll_period=53)
@@ -48,6 +48,8 @@ if __name__ == '__main__':
     # cerebro.broker.setcommission(commission=0.00075)
 
     cerebro.addsizer(bt.sizers.FixedSize, stake=1)
+
+    # cerebro.addwriter(bt.WriterFile, out='log.csv', csv=True)
 
     cerebro.run()
 

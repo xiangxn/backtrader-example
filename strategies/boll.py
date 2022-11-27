@@ -1,10 +1,14 @@
+import json
+import signal
 import backtrader as bt
 from backtrader import Order
 from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ("production", False), ("debug", True))
+    params = (("period_boll", 275), ("price_diff", 20), ("production", False), ("debug", True), ("live", False))
+
+    status_file = "status.json"
 
     def log(self, txt, dt=None):
         if not self.p.debug: return
@@ -12,6 +16,7 @@ class BollStrategy(bt.Strategy):
         print(f'{dt} {txt}')
 
     def __init__(self) -> None:
+        signal.signal(signal.SIGINT, self.sigstop)
         self.marketposition = 0
         self.boll = bt.indicators.bollinger.BollingerBands(self.datas[0], period=self.p.period_boll)
         self.trade_count = 0
@@ -19,6 +24,31 @@ class BollStrategy(bt.Strategy):
         self.live_data = False
         self.stop_limit = False
         self.stop_loss = False
+
+    def read_data(self):
+        if not self.p.live: return
+        try:
+            with open(self.status_file, 'r', encoding='utf-8') as fw:
+                injson = json.load(fw)
+                self.marketposition = injson['marketposition']
+                self.last_price = injson['last_price']
+                self.stop_loss = injson['stop_loss']
+        except Exception as e:
+            print("Failed to read status file: ", e)
+
+    def save_data(self):
+        if not self.p.live: return
+        data = { 'marketposition': self.marketposition, 'last_price': self.last_price, 'stop_loss': self.stop_loss }
+        with open(self.status_file, 'w', encoding='utf-8') as fw:
+            json.dump(data, fw, indent=4, ensure_ascii=False)
+
+    def start(self):
+        self.read_data()
+
+    def sigstop(self, a, b):
+        print('Stopping Backtrader...')
+        self.save_data()
+        self.env.runstop()
 
     def notify_order(self, order):
         self.log(
@@ -79,7 +109,7 @@ class BollStrategy(bt.Strategy):
         mid = self.boll.mid[0]
         dn = self.boll.bot[0]
         diff = up - dn
-        self.log(f" {data._name} | C: {data.close[0]} V:{data.volume[0]} UP:{up} MB:{mid} DN:{dn} Diff:{diff}", data.datetime.datetime(0))
+        # self.log(f" {data._name} | C: {data.close[0]} V:{data.volume[0]} UP:{up} MB:{mid} DN:{dn} Diff:{diff}", data.datetime.datetime(0))
 
         # 止损间隔
         if self.stop_loss:
@@ -94,26 +124,32 @@ class BollStrategy(bt.Strategy):
             if self.close_gt_up(data) and self.gt_last_mid(data):
                 self.buy(data)
                 self.marketposition = 1
+                self.log(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
             # 空头
             if self.close_lt_dn(data) and self.lt_last_mid(data):
                 self.sell(data)
                 self.marketposition = -1
+                self.log(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
         elif self.marketposition == 1:
             # 止损
             if self.last_price - data.close[0] > self.p.price_diff:
+                self.log(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
             elif self.dn_across(data):
+                self.log(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
         elif self.marketposition == -1:
             # 止损
             if data.close[0] - self.last_price > self.p.price_diff:
+                self.log(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
             elif self.up_across(data):
+                self.log(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
 
