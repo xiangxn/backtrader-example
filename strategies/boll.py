@@ -3,6 +3,7 @@ import signal
 import backtrader as bt
 from backtrader import Order
 from datetime import datetime
+from utils.logger import Logger
 
 
 class BollStrategy(bt.Strategy):
@@ -11,14 +12,14 @@ class BollStrategy(bt.Strategy):
     status_file = "status.json"
 
     def log(self, txt, dt=None):
-        if not self.p.debug: return
         dt = dt or self.datas[0].datetime.datetime(0)
-        print(f'{dt} {txt}')
+        self.logger.debug(f' {dt} {txt}')
 
     def __init__(self) -> None:
         signal.signal(signal.SIGINT, self.sigstop)
-        self.marketposition = 0
         self.boll = bt.indicators.bollinger.BollingerBands(self.datas[0], period=self.p.period_boll)
+        self.logger = Logger(name="boll", debug=self.p.debug, screen=True)
+        self.marketposition = 0
         self.trade_count = 0
         self.last_price = 0
         self.live_data = False
