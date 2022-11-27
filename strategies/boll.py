@@ -22,7 +22,6 @@ class BollStrategy(bt.Strategy):
         self.trade_count = 0
         self.last_price = 0
         self.live_data = False
-        self.stop_limit = False
         self.stop_loss = False
 
     def read_data(self):
@@ -79,22 +78,28 @@ class BollStrategy(bt.Strategy):
         else:
             self.live_data = False
 
-    def gt_last_mid(self, data):
+    def gt_last_mid(self):
+        data = self.datas[0]
         return data.close[-1] > self.boll.mid[-1] and data.close[-2] > self.boll.mid[-2] and data.close[-3] > self.boll.mid[-3]
 
-    def lt_last_mid(self, data):
+    def lt_last_mid(self):
+        data = self.datas[0]
         return data.close[-1] < self.boll.mid[-1] and data.close[-2] < self.boll.mid[-2] and data.close[-3] < self.boll.mid[-3]
 
-    def close_gt_up(self, data):
+    def close_gt_up(self):
+        data = self.datas[0]
         return data.close[0] > self.boll.top[0] and data.close[-1] > self.boll.top[-1]
 
-    def close_lt_dn(self, data):
+    def close_lt_dn(self):
+        data = self.datas[0]
         return data.close[0] < self.boll.bot[0] and data.close[-1] < self.boll.bot[-1]
 
-    def dn_across(self, data):
+    def dn_across(self):
+        data = self.datas[0]
         return data.close[-1] > self.boll.mid[-1] and data.close[0] < self.boll.mid[0]
 
-    def up_across(self, data):
+    def up_across(self):
+        data = self.datas[0]
         return data.close[-1] < self.boll.mid[-1] and data.close[0] > self.boll.mid[0]
 
     def next(self):
@@ -105,15 +110,10 @@ class BollStrategy(bt.Strategy):
             return
 
         data = self.datas[0]
-        up = self.boll.top[0]
-        mid = self.boll.mid[0]
-        dn = self.boll.bot[0]
-        diff = up - dn
-        # self.log(f" {data._name} | C: {data.close[0]} V:{data.volume[0]} UP:{up} MB:{mid} DN:{dn} Diff:{diff}", data.datetime.datetime(0))
 
         # 止损间隔
         if self.stop_loss:
-            if self.up_across(data) or self.dn_across(data):
+            if self.up_across() or self.dn_across():
                 self.stop_loss = False
             else:
                 return
@@ -121,12 +121,12 @@ class BollStrategy(bt.Strategy):
         # 开仓
         if self.marketposition == 0:
             # 多头
-            if self.close_gt_up(data) and self.gt_last_mid(data):
+            if self.close_gt_up() and self.gt_last_mid():
                 self.buy(data)
                 self.marketposition = 1
                 self.log(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
             # 空头
-            if self.close_lt_dn(data) and self.lt_last_mid(data):
+            if self.close_lt_dn() and self.lt_last_mid():
                 self.sell(data)
                 self.marketposition = -1
                 self.log(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
@@ -137,7 +137,7 @@ class BollStrategy(bt.Strategy):
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
-            elif self.dn_across(data):
+            elif self.dn_across():
                 self.log(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
@@ -148,7 +148,7 @@ class BollStrategy(bt.Strategy):
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
-            elif self.up_across(data):
+            elif self.up_across():
                 self.log(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
