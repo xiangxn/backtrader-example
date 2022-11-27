@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # Add the strategy
     # cerebro.addstrategy(TestStrategy)
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy)
+    cerebro.addstrategy(BollStrategy, production=True)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
