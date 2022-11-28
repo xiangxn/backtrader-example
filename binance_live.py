@@ -47,7 +47,7 @@ class TestStrategy(bt.Strategy):
 
 if __name__ == '__main__':
     init_env()
-    cerebro = bt.Cerebro(quicknotify=True)
+    cerebro = bt.Cerebro()
 
     # Add the strategy
     # cerebro.addstrategy(TestStrategy)

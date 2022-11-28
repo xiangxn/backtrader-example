@@ -24,7 +24,7 @@ class BollStrategy(bt.Strategy):
         self.logger = Logger(name="boll", debug=self.p.debug, screen=True)
         self.marketposition = 0
         self.trade_count = 0
-        self.last_price = 0
+        self.position_price = 0
         self.live_data = False
         self.stop_loss = False
 
@@ -34,14 +34,14 @@ class BollStrategy(bt.Strategy):
             with open(self.status_file, 'r', encoding='utf-8') as fw:
                 injson = json.load(fw)
                 self.marketposition = injson['marketposition']
-                self.last_price = injson['last_price']
+                self.position_price = injson['position_price']
                 self.stop_loss = injson['stop_loss']
         except Exception as e:
             print("Failed to read status file: %s", e)
 
     def save_status_data(self):
         if not self.p.production: return
-        data = { 'marketposition': self.marketposition, 'last_price': self.last_price, 'stop_loss': self.stop_loss }
+        data = { 'marketposition': self.marketposition, 'position_price': self.position_price, 'stop_loss': self.stop_loss }
         with open(self.status_file, 'w', encoding='utf-8') as fw:
             json.dump(data, fw, indent=4, ensure_ascii=False)
 
@@ -58,7 +58,7 @@ class BollStrategy(bt.Strategy):
             f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
         )
         if order.exectype == Order.Market and order.status == Order.Completed:
-            self.last_price = order.executed.price
+            self.position_price = order.executed.price
 
     def notify_trade(self, trade):
         if trade.isclosed:
@@ -133,36 +133,42 @@ class BollStrategy(bt.Strategy):
         if self.marketposition == 0:
             # 多头
             if self.close_gt_up() and self.gt_last_mid():
+                self.position_price = data.close[0]
                 self.buy(data)
                 self.marketposition = 1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
             # 空头
             if self.close_lt_dn() and self.lt_last_mid():
+                self.position_price = data.close[0]
                 self.sell(data)
                 self.marketposition = -1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
         elif self.marketposition == 1:
             # 止损
-            if self.last_price - data.close[0] > self.p.price_diff:
-                self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
+            if self.position_price - data.close[0] > self.p.price_diff:
+                self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
+                self.position_price = 0
             elif self.dn_across():
-                self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
+                self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
+                self.position_price = 0
         elif self.marketposition == -1:
             # 止损
-            if data.close[0] - self.last_price > self.p.price_diff:
-                self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
+            if self.position_price > 0 and data.close[0] - self.position_price > self.p.price_diff:
+                self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
                 self.stop_loss = True
+                self.position_price = 0
             elif self.up_across():
-                self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.last_price}, D:{self.p.price_diff}------")
+                self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
+                self.position_price = 0
 
     def stop(self):
         self.warning('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))

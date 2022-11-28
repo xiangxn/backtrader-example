@@ -21,7 +21,7 @@ class PrintClose(bt.Strategy):
 if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
-    cerebro.addstrategy(BollStrategy, period_boll=275, live=False)
+    cerebro.addstrategy(BollStrategy, period_boll=275)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
     # cerebro.addstrategy(BOLLKDJStrategy, boll_period=53)
