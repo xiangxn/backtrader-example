@@ -71,7 +71,6 @@ class BOLLKDJStrategy(bt.Strategy):
         return data.close[-1] < self.boll.mid[-1] and data.close[0] > self.boll.mid[0]
 
     def next(self):
-
         if self.stop_loss == -1:
             if self.dn_across():
                 self.stop_loss = 0
@@ -96,19 +95,21 @@ class BOLLKDJStrategy(bt.Strategy):
         if self.marketposition == 0:
             # 买入
             if self.boll_signal > 0 and self.kdj_signal > 0:
+                self.position_price = self.datas[0].close[0]
                 self.buy(self.datas[0])
                 self.marketposition = 1
                 self.boll_signal = 0
                 self.kdj_signal = 0
             # 卖出
             elif self.boll_signal < 0 and self.kdj_signal < 0:
+                self.position_price = self.datas[0].close[0]
                 self.sell(self.datas[0])
                 self.marketposition = -1
                 self.boll_signal = 0
                 self.kdj_signal = 0
         # 已持空仓
         elif self.marketposition == -1:
-            if (self.datas[0].close[0] - self.position_price > self.p.price_diff):
+            if self.position_price > 0 and (self.datas[0].close[0] - self.position_price > self.p.price_diff):
                 self.close()
                 self.marketposition = 0
                 self.position_price = 0
