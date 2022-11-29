@@ -98,13 +98,21 @@ class BollStrategy(bt.Strategy):
         data = self.datas[0]
         return data.close[0] < self.boll.bot[0] and data.close[-1] < self.boll.bot[-1]
 
-    def dn_across(self):
+    def down_across_mid(self):
         data = self.datas[0]
         return data.close[-1] > self.boll.mid[-1] and data.close[0] < self.boll.mid[0]
 
-    def up_across(self):
+    def up_across_mid(self):
         data = self.datas[0]
         return data.close[-1] < self.boll.mid[-1] and data.close[0] > self.boll.mid[0]
+
+    def down_across_top(self):
+        data = self.datas[0]
+        return data.close[-2] > self.boll.top[-2] and data.close[-1] > self.boll.top[-1] and data.close[0] < self.boll.top[0]
+
+    def up_across_bot(self):
+        data = self.datas[0]
+        return data.close[-2] < self.boll.bot[-2] and data.close[-1] < self.boll.bot[-1] and data.close[0] > self.boll.bot[0]
 
     def prenext(self):
         if self.p.production and not self.live_data:
@@ -124,7 +132,7 @@ class BollStrategy(bt.Strategy):
 
         # 止损间隔
         if self.stop_loss:
-            if self.up_across() or self.dn_across():
+            if self.up_across_mid() or self.down_across_mid():
                 self.stop_loss = False
             else:
                 return
@@ -151,7 +159,7 @@ class BollStrategy(bt.Strategy):
                 self.marketposition = 0
                 self.stop_loss = True
                 self.position_price = 0
-            elif self.dn_across():
+            elif self.down_across_mid():
                 self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
@@ -164,7 +172,7 @@ class BollStrategy(bt.Strategy):
                 self.marketposition = 0
                 self.stop_loss = True
                 self.position_price = 0
-            elif self.up_across():
+            elif self.up_across_mid():
                 self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
