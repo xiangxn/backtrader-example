@@ -1,15 +1,16 @@
 import json
+import logging
 import signal
 import backtrader as bt
 from backtrader import Order
 from datetime import datetime
-from utils.logger import Logger
 
 
 class BollStrategy(bt.Strategy):
     params = (("period_boll", 275), ("price_diff", 20), ("production", False), ("debug", True))
 
     status_file = "status.json"
+    logger = None
 
     def debug(self, txt, dt=None):
         dt = dt or self.datas[0].datetime.datetime(0)
@@ -21,7 +22,11 @@ class BollStrategy(bt.Strategy):
     def __init__(self) -> None:
         signal.signal(signal.SIGINT, self.sigstop)
         self.boll = bt.indicators.bollinger.BollingerBands(self.datas[0], period=self.p.period_boll)
-        self.logger = Logger(name="boll", debug=self.p.debug, screen=True)
+        self.logger = self.logger if self.logger else logging.getLogger(__name__)
+        if self.p.debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.WARNING)
         self.marketposition = 0
         self.trade_count = 0
         self.position_price = 0
@@ -120,16 +125,14 @@ class BollStrategy(bt.Strategy):
             for data in self.datas:
                 print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0],
                                                                      data.close[0], data.volume[0]))
-        else:
-            data = self.datas[0]
-            print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
-                                                                 data.volume[0]))
 
     def next(self):
         if self.p.production and not self.live_data:
             return
 
         data = self.datas[0]
+        print('{}  {} | O: {} H: {} L: {} C: {} V:{} P:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
+                                                                  data.volume[0], self.position_price))
 
         # 止损间隔
         if self.stop_loss:

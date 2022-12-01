@@ -11,7 +11,6 @@ class Logger(object):
         self.is_debug = debug
         self.path_prefix = f"logs/{name}"
         self.logger = logging.getLogger("%s_logger" % name)
-        self.logger.propagate = False
         if not email:
             email = get_email()
             if not email['user']:
