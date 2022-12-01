@@ -125,13 +125,17 @@ class BollStrategy(bt.Strategy):
             for data in self.datas:
                 print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0],
                                                                      data.close[0], data.volume[0]))
+        else:
+            data = self.datas[0]
+            print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
+                                                                  data.volume[0]))
 
     def next(self):
         if self.p.production and not self.live_data:
             return
 
         data = self.datas[0]
-        print('{}  {} | O: {} H: {} L: {} C: {} V:{} P:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
+        print('{}  {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
                                                                   data.volume[0], self.position_price))
 
         # 止损间隔
