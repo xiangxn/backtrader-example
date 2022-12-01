@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from strategies.bollema import BollEMA
 from strategies.boll import BollStrategy
 from utils.helper import init_env, get_env
-
+import logging.config
 
 class TestStrategy(bt.Strategy):
 
@@ -47,6 +47,7 @@ class TestStrategy(bt.Strategy):
 
 if __name__ == '__main__':
     init_env()
+    logging.config.fileConfig("logging.ini")
     cerebro = bt.Cerebro()
 
     # Add the strategy
