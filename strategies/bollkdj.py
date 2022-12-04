@@ -5,7 +5,7 @@ from backtrader import Order
 
 
 class BOLLKDJStrategy(bt.Strategy):
-    params = (("boll_period", 53), ("boll_mult", 2), ("kdj_period", 9), ("kdj_ma1", 3), ("kdj_ma2", 3), ("price_diff", 20), ("debug", True))
+    params = (("boll_period", 53), ("boll_mult", 2), ("kdj_period", 9), ("kdj_ma1", 3), ("kdj_ma2", 3), ("price_diff", 30), ("debug", True))
 
     def log(self, txt, dt=None):
         if not self.p.debug: return
