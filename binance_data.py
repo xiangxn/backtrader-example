@@ -1,5 +1,6 @@
 from datetime import datetime
 import backtrader as bt
+import logging.config
 
 from data.dataset import CustomDataset
 from strategies.abbration import Abbration
@@ -19,6 +20,7 @@ class PrintClose(bt.Strategy):
 
 
 if __name__ == '__main__':
+    logging.config.fileConfig("logging.ini")
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
     # cerebro.addstrategy(BollStrategy, period_boll=275)
@@ -31,7 +33,7 @@ if __name__ == '__main__':
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2022.csv",
+                         dataname="data/ETHUSDT-1m-2022-08.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2022, 5, 1),

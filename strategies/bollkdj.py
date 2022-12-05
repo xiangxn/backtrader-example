@@ -1,19 +1,28 @@
+import logging
 import backtrader as bt
 from indicators.kdj import KDJ
-from datetime import datetime
 from backtrader import Order
 
 
 class BOLLKDJStrategy(bt.Strategy):
     params = (("boll_period", 53), ("boll_mult", 2), ("kdj_period", 9), ("kdj_ma1", 3), ("kdj_ma2", 3), ("price_diff", 30), ("debug", True))
 
+    logger = None
+
     def log(self, txt, dt=None):
-        if not self.p.debug: return
         dt = dt or self.datas[0].datetime.datetime(0)
-        print(f'{dt} {txt}')
+        if len(self.logger.root.handlers) == 0:
+            print(f'({dt}): {txt}')
+        else:
+            self.logger.debug(f'({dt}): {txt}')
 
     def __init__(self):
         self.trade_count = 0
+        self.logger = self.logger if self.logger else logging.getLogger(__name__)
+        if self.p.debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.WARNING)
         self.boll = bt.indicators.BollingerBands(self.datas[0], period=self.p.boll_period, devfactor=self.p.boll_mult)
         self.kdj = KDJ(self.datas[0], period=self.p.kdj_period, period_dfast=self.p.kdj_ma1, period_dslow=self.p.kdj_ma2)
         # 保存交易状态
@@ -29,7 +38,7 @@ class BOLLKDJStrategy(bt.Strategy):
 
     def notify_order(self, order):
         if order.exectype == Order.Market and order.status == Order.Completed:
-            self.position_price = order.executed.price
+            # self.position_price = order.executed.price
             self.log(
                 f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
             )
@@ -123,6 +132,7 @@ class BOLLKDJStrategy(bt.Strategy):
                 self.position_price = 0
                 self.boll_signal = 0
                 self.kdj_signal = 0
+                # self.stop_loss = -1
         # 已持多仓
         else:
             if (self.position_price - self.datas[0].close[0] > self.p.price_diff):
@@ -139,7 +149,8 @@ class BOLLKDJStrategy(bt.Strategy):
                 self.position_price = 0
                 self.boll_signal = 0
                 self.kdj_signal = 0
+                # self.stop_loss = 1
 
     def stop(self):
-        print('(MA boll_period %2d, %2d) Ending Value: %.2f, Trade Count: %d' %
-              (self.p.boll_period, self.p.kdj_period, self.broker.getcash(), self.trade_count))
+        self.log('(MA boll_period %2d, %2d) Ending Value: %.2f, Trade Count: %d' %
+                 (self.p.boll_period, self.p.kdj_period, self.broker.getcash(), self.trade_count))
