@@ -7,6 +7,7 @@ from strategies.abbration import Abbration
 from strategies.bollkdj import BOLLKDJStrategy
 from strategies.bollema import BollEMA
 from strategies.boll import BollStrategy
+from strategies.macdkdj import MACDKDJStrategy
 
 
 class PrintClose(bt.Strategy):
@@ -26,7 +27,8 @@ if __name__ == '__main__':
     # cerebro.addstrategy(BollStrategy, period_boll=275)
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
-    cerebro.addstrategy(BOLLKDJStrategy, price_diff=30)
+    # cerebro.addstrategy(BOLLKDJStrategy, price_diff=30)
+    cerebro.addstrategy(MACDKDJStrategy)
 
     # cerebro.optstrategy(BollStrategy, period_boll=range(250, 300,5), debug=False)
     # cerebro.optstrategy(BOLLKDJStrategy, price_diff=range(5, 50,5), debug=False)
