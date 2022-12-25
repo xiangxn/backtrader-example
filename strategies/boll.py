@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ("production", False), ("debug", True))
+    params = (("period_boll", 275), ("price_diff", 20), ('diff', 10), ("production", False), ("debug", True))
 
     status_file = "status.json"
     logger = None
@@ -128,15 +128,15 @@ class BollStrategy(bt.Strategy):
         else:
             data = self.datas[0]
             print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
-                                                                  data.volume[0]))
+                                                                 data.volume[0]))
 
     def next(self):
         if self.p.production and not self.live_data:
             return
 
         data = self.datas[0]
-        print('{}  {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
-                                                                  data.volume[0], self.position_price))
+        print('{}  {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0],
+                                                                   data.close[0], data.volume[0], self.position_price))
 
         # 止损间隔
         if self.stop_loss:
@@ -147,6 +147,8 @@ class BollStrategy(bt.Strategy):
 
         # 开仓
         if self.marketposition == 0:
+            if self.boll.top[0] - self.boll.bot[0] <= self.p.diff:
+                return
             # 多头
             if self.close_gt_up() and self.gt_last_mid():
                 self.position_price = data.close[0]
