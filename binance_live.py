@@ -110,7 +110,7 @@ if __name__ == '__main__':
     cerebro.adddata(data)
 
     cerebro.broker.setcommission(commission=0.0004, margin=0.1, mult=1.0)
-    cerebro.addsizer(bt.sizers.FixedSize, stake=1)
+    cerebro.addsizer(bt.sizers.FixedSize, stake=2)
 
     # Run the strategy
     cerebro.run()

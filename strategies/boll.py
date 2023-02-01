@@ -120,6 +120,22 @@ class BollStrategy(bt.Strategy):
         data = self.datas[0]
         return data.close[-2] < self.boll.bot[-2] and data.close[-1] < self.boll.bot[-1] and data.close[0] > self.boll.bot[0]
 
+    def up_stop_profit(self):
+        data = self.datas[0]
+        point = (self.boll.top[0] - self.boll.mid[0]) * 0.618
+        # point += self.boll.mid[0]
+        point = self.boll.top[0] - point
+        # return self.position_price < data.close[0] and data.close[0] <= point
+        return data.close[0] <= point
+
+    def down_stop_profit(self):
+        data = self.datas[0]
+        point = (self.boll.mid[0] - self.boll.bot[0]) * 0.618
+        # point = self.boll.mid[0] - point
+        point += self.boll.bot[0]
+        # return self.position_price > data.close[0] and data.close[0] >= point
+        return data.close[0] >= point
+
     def prenext(self):
         if self.p.production and not self.live_data:
             for data in self.datas:
@@ -170,6 +186,7 @@ class BollStrategy(bt.Strategy):
                 self.stop_loss = True
                 self.position_price = 0
             elif self.down_across_mid():
+            # elif self.up_stop_profit():
                 self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
@@ -183,6 +200,7 @@ class BollStrategy(bt.Strategy):
                 self.stop_loss = True
                 self.position_price = 0
             elif self.up_across_mid():
+            # elif self.down_stop_profit():
                 self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0

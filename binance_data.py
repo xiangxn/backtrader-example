@@ -30,12 +30,12 @@ if __name__ == '__main__':
     # cerebro.addstrategy(BOLLKDJStrategy, price_diff=30)
     # cerebro.addstrategy(MACDKDJStrategy)
 
-    # cerebro.optstrategy(BollStrategy, period_boll=range(250, 300,5), debug=False)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(20, 300,20), debug=False)
     # cerebro.optstrategy(BOLLKDJStrategy, price_diff=range(5, 50,5), debug=False)
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2022.csv",
+                         dataname="data/ETHUSDT-1m-2022-05.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2022, 5, 1),
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                          nullvalue=0.0)
     cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=5)
 
-    cerebro.broker.setcash(1000.0)
+    cerebro.broker.setcash(100.0)
 
     # 配置滑点费用,2跳
     # cerebro.broker.set_slippage_fixed(slippage*1)
