@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/BTCUSDT-1m-2022-05.csv",
+                         dataname="data/BTCUSDT-1m-2022.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2022, 5, 1),
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # cerebro.broker.setcommission(commission=0.00075)
 
     # cerebro.addsizer(bt.sizers.FixedSize, stake=1)
-    cerebro.addsizer(bt.sizers.PercentSizer, percents=50)
+    cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
 
     # cerebro.addwriter(bt.WriterFile, out='log.csv', csv=True)
 
