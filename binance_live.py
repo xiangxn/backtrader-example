@@ -3,6 +3,7 @@ import backtrader as bt
 from datetime import datetime, timedelta
 from strategies.bollema import BollEMA
 from strategies.boll import BollStrategy
+from strategies.boll_reverser import BollReverser
 from utils.helper import init_env, get_env
 import logging.config
 
@@ -53,7 +54,8 @@ if __name__ == '__main__':
     # Add the strategy
     # cerebro.addstrategy(TestStrategy)
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy, production=True)
+    # cerebro.addstrategy(BollStrategy, production=True)
+    cerebro.addstrategy(BollReverser)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
@@ -63,7 +65,7 @@ if __name__ == '__main__':
     # IMPORTANT NOTE - Kraken (and some other exchanges) will not return any values
     # for get cash or value if You have never held any BNB coins in your account.
     # So switch BNB to a coin you have funded previously if you get errors
-    store = CCXTStore(exchange='binanceusdm', currency='USDT', config=config, retries=100, debug=False)
+    store = CCXTStore(exchange='binance', currency='USDT', config=config, retries=100, debug=False)
 
     # Get the broker and pass any kwargs if needed.
     # ----------------------------------------------
@@ -94,10 +96,10 @@ if __name__ == '__main__':
 
     # Get our data
     # Drop newest will prevent us from loading partial data from incomplete candles
-    hist_start_date = datetime.utcnow() - timedelta(minutes=1370)
+    hist_start_date = datetime.utcnow() - timedelta(minutes=520)
     data = store.getdata(
-        dataname='ETH/USDT',
-        name="ETHUSDT",
+        dataname='BTC/USDT',
+        name="BTCUSDT",
         timeframe=bt.TimeFrame.Minutes,
         fromdate=hist_start_date,
         compression=5,
@@ -109,8 +111,9 @@ if __name__ == '__main__':
     # Add the feed
     cerebro.adddata(data)
 
-    cerebro.broker.setcommission(commission=0.0004, margin=0.1, mult=1.0)
-    cerebro.addsizer(bt.sizers.FixedSize, stake=2)
+    # cerebro.broker.setcommission(commission=0.0004, margin=0.1, mult=1.0)
+    # cerebro.addsizer(bt.sizers.FixedSize, stake=2)
+    cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
 
     # Run the strategy
     cerebro.run()

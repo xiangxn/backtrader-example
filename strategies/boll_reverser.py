@@ -27,6 +27,7 @@ class BollReverser(bt.Strategy):
         else:
             self.logger.setLevel(logging.WARNING)
         self.trade_count = 0
+        self.live_data = False
 
     def sigstop(self, a, b):
         self.warning('Stopping Backtrader...')
@@ -34,6 +35,15 @@ class BollReverser(bt.Strategy):
 
     def stop(self):
         self.warning('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))
+
+    def notify_data(self, data, status, *args, **kwargs):
+        dn = data._name
+        msg = f'{dn} Data Status: {data._getstatusname(status)}'
+        self.debug(msg, datetime.utcnow())
+        if data._getstatusname(status) == 'LIVE':
+            self.live_data = True
+        else:
+            self.live_data = False
 
     def notify_trade(self, trade):
         if trade.isclosed:
@@ -48,6 +58,15 @@ class BollReverser(bt.Strategy):
             self.debug(f'open symbol is : {trade.getdataname()} , price : {trade.price}, size: {trade.size} ')
 
     def next(self):
+        data = self.datas[0]
+        vn = data._name.replace(self.broker.currency, "")
+        _, value = self.broker.get_wallet_balance(vn)
+        print('{}  {} | O: {} H: {} L: {} C: {} V:{} Value: {} Cash: {}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0],
+                                                                                data.close[0], data.volume[0], value, self.broker.getcash()))
+
+        if not self.live_data:
+            return
+
         position = self.getposition()
 
         if position.size == 0:
