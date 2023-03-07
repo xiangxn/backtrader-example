@@ -7,6 +7,7 @@ from strategies.boll_reverser import BollReverser
 from utils.helper import init_env, get_env
 import logging.config
 
+
 class TestStrategy(bt.Strategy):
 
     def __init__(self):
@@ -23,17 +24,20 @@ class TestStrategy(bt.Strategy):
         # NOTE: If you try to get the wallet balance from a wallet you have
         # never funded, a KeyError will be raised! Change LTC below as approriate
         if self.live_data:
-            cash, value = self.broker.get_wallet_balance('USDT')
+            # cash, value = self.broker.get_wallet_balance("BTC")
+            cash, value = self.broker.get_balance()
         else:
             # Avoid checking the balance during a backfill. Otherwise, it will
             # Slow things down.
             cash = 'NA'
+            value = 'NA'
             # return  # 仍然处于历史数据回填阶段，不执行逻辑，返回
 
         for data in self.datas:
 
-            print('{} - {} | Cash {} | O: {} H: {} L: {} C: {} V:{} SMA:{}'.format(data.datetime.datetime(), data._name, cash, data.open[0], data.high[0],
-                                                                                   data.low[0], data.close[0], data.volume[0], self.sma[0]))
+            print('{} - {} | Cash {} | Value {} | O: {} H: {} L: {} C: {} V:{} SMA:{}'.format(data.datetime.datetime(), data._name, cash, value, data.open[0],
+                                                                                              data.high[0], data.low[0], data.close[0], data.volume[0],
+                                                                                              self.sma[0]))
 
     def notify_data(self, data, status, *args, **kwargs):
         dn = data._name
@@ -58,9 +62,15 @@ if __name__ == '__main__':
     cerebro.addstrategy(BollReverser)
 
     # Create our store
-    config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
+    config = {
+        'apiKey': get_env('B_APIKEY'),
+        'secret': get_env('B_SECRET'),
+        'enableRateLimit': True,
+    }
     if get_env("PROXY") == '1':
-        config['proxies'] = { 'https': "http://127.0.0.1:8001", 'http': "http://127.0.0.1:8001"}
+        # config['trust_env'] = True
+        # config['aiohttp_trust_env'] = True
+        config['requests_trust_env'] = True
 
     # IMPORTANT NOTE - Kraken (and some other exchanges) will not return any values
     # for get cash or value if You have never held any BNB coins in your account.

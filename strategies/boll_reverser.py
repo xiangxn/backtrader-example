@@ -59,8 +59,8 @@ class BollReverser(bt.Strategy):
 
     def next(self):
         data = self.datas[0]
-        vn = data._name.replace(self.broker.currency, "")
-        _, value = self.broker.get_wallet_balance(vn)
+        value = self.broker.getvalue()
+        cash = self.broker.getcash()
         position = self.getposition()
         print('{}  {} | O: {} H: {} L: {} C: {} V:{} Value: {} Cash: {} Position: {}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0],
                                                                                              data.low[0], data.close[0], data.volume[0], value,
@@ -71,10 +71,10 @@ class BollReverser(bt.Strategy):
 
         if position.size == 0:
             # if self.up_across_top():
-            if self.close_gt_up():
+            if self.close_gt_up() and value > 0:
                 self.sell()
             # elif self.down_across_bot():
-            elif self.close_lt_dn():
+            elif self.close_lt_dn() and cash > 0:
                 self.buy()
         elif position.size > 0:
             # if self.down_across_mid():
