@@ -6,6 +6,7 @@ from strategies.boll import BollStrategy
 from utils.helper import init_env, get_env
 import logging.config
 
+
 class TestStrategy(bt.Strategy):
 
     def __init__(self):
@@ -53,17 +54,17 @@ if __name__ == '__main__':
     # Add the strategy
     # cerebro.addstrategy(TestStrategy)
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy, production=True)
+    cerebro.addstrategy(BollStrategy, production=True, cotter=True)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
     if get_env("PROXY") == '1':
-        config['proxies'] = { 'https': "http://127.0.0.1:8001", 'http': "http://127.0.0.1:8001"}
+        config['requests_trust_env'] = True
 
     # IMPORTANT NOTE - Kraken (and some other exchanges) will not return any values
     # for get cash or value if You have never held any BNB coins in your account.
     # So switch BNB to a coin you have funded previously if you get errors
-    store = CCXTStore(exchange='binanceusdm', currency='USDT', config=config, retries=100, debug=False)
+    store = CCXTStore(exchange='binanceusdm', currency='USDT', config=config, retries=10, debug=False)
 
     # Get the broker and pass any kwargs if needed.
     # ----------------------------------------------

@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ('middle_cotter', 20), ("production", False), ("debug", True), ('cotter', False))
+    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ('middle_cotter', 23), ("production", False), ("debug", True), ('cotter', False))
 
     status_file = "status.json"
     logger = None
