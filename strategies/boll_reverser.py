@@ -57,6 +57,10 @@ class BollReverser(bt.Strategy):
         if trade.isopen:
             self.debug(f'open symbol is : {trade.getdataname()} , price : {trade.price}, size: {trade.size} ')
 
+    def nextstart(self):
+        self.broker.get_balance(self.data0)
+        self.next()
+
     def next(self):
         data = self.datas[0]
         value = self.broker.getvalue()
