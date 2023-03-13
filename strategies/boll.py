@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ('diff', 10), ("production", False), ("debug", True))
+    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ('middle_cotter', 23), ("production", False), ("debug", True), ('cotter', False))
 
     status_file = "status.json"
     logger = None
@@ -17,7 +17,8 @@ class BollStrategy(bt.Strategy):
         self.logger.debug(f'[{dt}]: {txt}')
 
     def warning(self, txt):
-        self.logger.warning(txt)
+        # self.logger.warning(txt)
+        pass
 
     def __init__(self) -> None:
         signal.signal(signal.SIGINT, self.sigstop)
@@ -136,23 +137,24 @@ class BollStrategy(bt.Strategy):
         # return self.position_price > data.close[0] and data.close[0] >= point
         return data.close[0] >= point
 
+    def get_cotter(self):
+        return self.boll.top[0] - self.boll.bot[0]
+
     def prenext(self):
         if self.p.production and not self.live_data:
             for data in self.datas:
-                print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0],
-                                                                     data.close[0], data.volume[0]))
+                self.debug(' {} | O: {} H: {} L: {} C: {} V:{}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0]))
         else:
             data = self.datas[0]
-            print('{}  {} | O: {} H: {} L: {} C: {} V:{}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0], data.close[0],
-                                                                 data.volume[0]))
+            self.debug(' {} | O: {} H: {} L: {} C: {} V:{}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0]))
 
     def next(self):
         if self.p.production and not self.live_data:
             return
 
         data = self.datas[0]
-        print('{}  {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data.datetime.datetime(0), data._name, data.open[0], data.high[0], data.low[0],
-                                                                   data.close[0], data.volume[0], self.position_price))
+        self.debug(' {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0],
+                                                                     self.position_price))
 
         # 止损间隔
         if self.stop_loss:
@@ -163,21 +165,39 @@ class BollStrategy(bt.Strategy):
 
         # 开仓
         if self.marketposition == 0:
-            if self.boll.top[0] - self.boll.bot[0] <= self.p.diff:
+            if self.get_cotter() <= self.p.small_cotter:
                 return
-            # 多头
             if self.close_gt_up() and self.gt_last_mid():
                 self.position_price = data.close[0]
-                self.buy(data)
-                self.marketposition = 1
+                if self.p.cotter:
+                    if self.get_cotter() < self.p.middle_cotter:
+                        # 空头
+                        self.sell(data)
+                        self.marketposition = -2
+                    else:
+                        # 多头
+                        self.buy(data)
+                        self.marketposition = 1
+                else:
+                    self.buy(data)
+                    self.marketposition = 1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
-            # 空头
             if self.close_lt_dn() and self.lt_last_mid():
                 self.position_price = data.close[0]
-                self.sell(data)
-                self.marketposition = -1
+                if self.p.cotter:
+                    if self.get_cotter() < self.p.middle_cotter:
+                        # 多头
+                        self.buy(data)
+                        self.marketposition = 2
+                    else:
+                        # 空头
+                        self.sell(data)
+                        self.marketposition = -1
+                else:
+                    self.sell(data)
+                    self.marketposition = -1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
-        elif self.marketposition == 1:
+        elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
                 self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
@@ -185,13 +205,12 @@ class BollStrategy(bt.Strategy):
                 self.marketposition = 0
                 self.stop_loss = True
                 self.position_price = 0
-            elif self.down_across_mid():
-            # elif self.up_stop_profit():
+            elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
                 self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
                 self.position_price = 0
-        elif self.marketposition == -1:
+        elif self.marketposition < 0:
             # 止损
             if self.position_price > 0 and data.close[0] - self.position_price > self.p.price_diff:
                 self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
@@ -199,12 +218,14 @@ class BollStrategy(bt.Strategy):
                 self.marketposition = 0
                 self.stop_loss = True
                 self.position_price = 0
-            elif self.up_across_mid():
-            # elif self.down_stop_profit():
+            elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
+                # elif self.down_stop_profit():
                 self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.marketposition = 0
                 self.position_price = 0
 
     def stop(self):
-        self.warning('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))
+        msg = f"(Period_boll: {self.p.period_boll}, price_diff: {self.p.price_diff}, small_cotter: {self.p.small_cotter}, middle_cotter: {self.p.middle_cotter})"
+        msg = f"{msg} Ending Value: {self.broker.getcash()}, Trade Count: {self.trade_count}"
+        print(msg)
