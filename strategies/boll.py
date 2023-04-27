@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ('middle_cotter', 23), ("production", False), ("debug", True), ('cotter', False))
+    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False))
 
     status_file = "status.json"
     logger = None
@@ -169,31 +169,23 @@ class BollStrategy(bt.Strategy):
                 return
             if self.close_gt_up() and self.gt_last_mid():
                 self.position_price = data.close[0]
-                if self.p.cotter:
-                    if self.get_cotter() < self.p.middle_cotter:
-                        # 空头
-                        self.sell(data)
-                        self.marketposition = -2
-                    else:
-                        # 多头
-                        self.buy(data)
-                        self.marketposition = 1
+                if self.p.reversal:
+                    # 空头
+                    self.sell(data)
+                    self.marketposition = -2
                 else:
+                    # 多头
                     self.buy(data)
                     self.marketposition = 1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
             if self.close_lt_dn() and self.lt_last_mid():
                 self.position_price = data.close[0]
-                if self.p.cotter:
-                    if self.get_cotter() < self.p.middle_cotter:
-                        # 多头
-                        self.buy(data)
-                        self.marketposition = 2
-                    else:
-                        # 空头
-                        self.sell(data)
-                        self.marketposition = -1
+                if self.p.reversal:
+                    # 多头
+                    self.buy(data)
+                    self.marketposition = 2
                 else:
+                    # 空头
                     self.sell(data)
                     self.marketposition = -1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
@@ -226,4 +218,4 @@ class BollStrategy(bt.Strategy):
                 self.position_price = 0
 
     def stop(self):
-        print('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.middle_cotter, self.broker.getcash(), self.trade_count))
+        print('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))

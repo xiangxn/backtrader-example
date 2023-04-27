@@ -1,3 +1,5 @@
+import sys
+import os
 from ccxtbt import CCXTStore
 import backtrader as bt
 from datetime import datetime, timedelta
@@ -5,6 +7,7 @@ from strategies.bollema import BollEMA
 from strategies.boll import BollStrategy
 from utils.helper import init_env, get_env
 import logging.config
+import argparse
 
 
 class TestStrategy(bt.Strategy):
@@ -47,6 +50,14 @@ class TestStrategy(bt.Strategy):
 
 
 if __name__ == '__main__':
+    arg_parser = argparse.ArgumentParser(prog=sys.argv[0], formatter_class=argparse.RawDescriptionHelpFormatter)
+    arg_parser.add_argument('-R', '--reversal', action="store_true", help='Whether to flip the transaction')
+    arg_parser.add_argument('-C', '--clear', action="store_true", help='Whether to clear the status')
+    args = arg_parser.parse_args(args=sys.argv[1:])
+
+    if args.clear:
+        os.remove("./status.json")
+
     init_env()
     logging.config.fileConfig("logging.ini")
     cerebro = bt.Cerebro()
@@ -54,7 +65,7 @@ if __name__ == '__main__':
     # Add the strategy
     # cerebro.addstrategy(TestStrategy)
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy, production=True, cotter=True)
+    cerebro.addstrategy(BollStrategy, production=True, reversal=args.reversal)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
