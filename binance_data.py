@@ -26,8 +26,8 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollStrategy, period_boll=275, middle_cotter=28)
-    # cerebro.optstrategy(BollStrategy, period_boll=275, middle_cotter=range(20, 30, 1), debug=False)
+    cerebro.addstrategy(BollStrategy, period_boll=140)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(120,160,5), debug=False)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
@@ -35,17 +35,17 @@ if __name__ == '__main__':
     # cerebro.addstrategy(MACDKDJStrategy)
 
     # cerebro.addstrategy(BollReverser)
-    # cerebro.optstrategy(BollReverser, period_boll=range(40, 60, 2), debug=False)
+    # cerebro.optstrategy(BollReverser, period_boll=range(100, 300, 20), debug=False)
 
     # cerebro.optstrategy(BOLLKDJStrategy, price_diff=range(5, 50,5), debug=False)
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2022.csv",
+                         dataname="data/ETHUSDT-1m-2023-04.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
-                         fromdate=datetime(2022, 5, 1),
-                         todate=datetime(2022, 12, 31),
+                         fromdate=datetime(2023, 1, 1),
+                         todate=datetime(2023, 12, 31),
                          nullvalue=0.0)
     cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=5)
 
