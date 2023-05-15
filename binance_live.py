@@ -53,6 +53,7 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(prog=sys.argv[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     arg_parser.add_argument('-R', '--reversal', action="store_true", help='Whether to flip the transaction')
     arg_parser.add_argument('-C', '--clear', action="store_true", help='Whether to clear the status')
+    arg_parser.add_argument('-S', '--stake', type=int, help='set stake', default=1)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
     if args.clear:
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     cerebro.adddata(data)
 
     cerebro.broker.setcommission(commission=0.0004, margin=0.1, mult=1.0)
-    cerebro.addsizer(bt.sizers.FixedSize, stake=2)
+    cerebro.addsizer(bt.sizers.FixedSize, stake=args.stake)
 
     # Run the strategy
     cerebro.run()
