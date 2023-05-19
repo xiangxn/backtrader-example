@@ -30,9 +30,9 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    # cerebro.addstrategy(BollStrategy, period_boll=190, slope=0.8)
+    cerebro.addstrategy(BollStrategy, period_boll=190, slope=0.8)
     # cerebro.optstrategy(BollStrategy, period_boll=range(170,200,2), debug=False)
-    cerebro.optstrategy(BollStrategy, period_boll=190, slope=float_range(0.4, 1.2, 9), debug=False)
+    # cerebro.optstrategy(BollStrategy, period_boll=190, slope=float_range(0.1, 0.9, 9), debug=False)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
@@ -69,4 +69,4 @@ if __name__ == '__main__':
 
     cerebro.run()
 
-    # cerebro.plot()
+    cerebro.plot()

@@ -170,10 +170,10 @@ class BollStrategy(bt.Strategy):
         if self.marketposition == 0:
             if self.get_cotter() <= self.p.small_cotter:
                 return
-            if self.close_gt_up() and self.gt_last_mid():
+            # if self.close_gt_up() and self.gt_last_mid():
+            if self.close_gt_up():
                 self.position_price = data.close[0]
-                # if self.p.reversal:
-                if self.get_slope() > self.p.slope:
+                if self.p.reversal or self.get_slope() > self.p.slope:
                     # 空头
                     self.sell(data)
                     self.marketposition = -2
@@ -182,10 +182,10 @@ class BollStrategy(bt.Strategy):
                     self.buy(data)
                     self.marketposition = 1
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
-            if self.close_lt_dn() and self.lt_last_mid():
+            # if self.close_lt_dn() and self.lt_last_mid():
+            if self.close_lt_dn():
                 self.position_price = data.close[0]
-                # if self.p.reversal:
-                if self.get_slope() > self.p.slope:
+                if self.p.reversal or self.get_slope() > self.p.slope:
                     # 多头
                     self.buy(data)
                     self.marketposition = 2
