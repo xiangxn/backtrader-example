@@ -14,7 +14,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-R', '--reversal', action="store_true", help='Whether to flip the transaction')
     arg_parser.add_argument('-C', '--clear', action="store_true", help='Whether to clear the status')
     arg_parser.add_argument('-S', '--stake', type=int, help='set stake', default=1)
-    arg_parser.add_argument('-P', '--period', type=int, help='set period', default=140)
+    arg_parser.add_argument('-P', '--period', type=int, help='set period', default=190)
+    arg_parser.add_argument('-X', '--slope', type=float, help='set slope', default=0.8)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
     if args.clear:
@@ -26,7 +27,7 @@ if __name__ == '__main__':
 
     # Add the strategy
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy, production=True, period_boll=args.period, reversal=args.reversal)
+    cerebro.addstrategy(BollStrategy, production=True, period_boll=args.period, slope=args.slope, reversal=args.reversal)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }

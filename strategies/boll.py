@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False))
+    params = (("period_boll", 275), ("slope", 0.55), ("price_diff", 20), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False))
 
     status_file = "status.json"
     logger = None
@@ -172,7 +172,8 @@ class BollStrategy(bt.Strategy):
                 return
             if self.close_gt_up() and self.gt_last_mid():
                 self.position_price = data.close[0]
-                if self.p.reversal:
+                # if self.p.reversal:
+                if self.get_slope() > self.p.slope:
                     # 空头
                     self.sell(data)
                     self.marketposition = -2
@@ -183,7 +184,8 @@ class BollStrategy(bt.Strategy):
                 self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
             if self.close_lt_dn() and self.lt_last_mid():
                 self.position_price = data.close[0]
-                if self.p.reversal:
+                # if self.p.reversal:
+                if self.get_slope() > self.p.slope:
                     # 多头
                     self.buy(data)
                     self.marketposition = 2
@@ -221,4 +223,4 @@ class BollStrategy(bt.Strategy):
                 self.position_price = 0
 
     def stop(self):
-        print('(MA Period_boll %2d) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.broker.getcash(), self.trade_count))
+        print('(MA Period_boll %2d %.2f) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.p.slope, self.broker.getcash(), self.trade_count))

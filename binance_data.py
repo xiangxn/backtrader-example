@@ -21,13 +21,18 @@ class PrintClose(bt.Strategy):
         self.log('Close: %.3f' % self.data0.close[0])
 
 
+def float_range(start, stop, steps):
+    return [start + float(i) * (stop-start) / (float(steps) - 1) for i in range(steps)]
+
+
 if __name__ == '__main__':
     logging.config.fileConfig("logging.ini")
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollStrategy, period_boll=140)
-    # cerebro.optstrategy(BollStrategy, period_boll=range(120,160,5), debug=False)
+    # cerebro.addstrategy(BollStrategy, period_boll=190, slope=0.8)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(170,200,2), debug=False)
+    cerebro.optstrategy(BollStrategy, period_boll=190, slope=float_range(0.4, 1.2, 9), debug=False)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
@@ -64,4 +69,4 @@ if __name__ == '__main__':
 
     cerebro.run()
 
-    cerebro.plot()
+    # cerebro.plot()
