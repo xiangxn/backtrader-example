@@ -140,6 +140,9 @@ class BollStrategy(bt.Strategy):
     def get_cotter(self):
         return self.boll.top[0] - self.boll.bot[0]
 
+    def get_slope(self):
+        return abs(self.boll.mid[0] - self.boll.mid[-6])
+
     def prenext(self):
         if self.p.production and not self.live_data:
             for data in self.datas:
