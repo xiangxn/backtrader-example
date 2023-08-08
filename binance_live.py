@@ -14,8 +14,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-R', '--reversal', action="store_true", help='Whether to flip the transaction')
     arg_parser.add_argument('-C', '--clear', action="store_true", help='Whether to clear the status')
     arg_parser.add_argument('-S', '--stake', type=int, help='set stake', default=1)
-    arg_parser.add_argument('-P', '--period', type=int, help='set period', default=240)
-    arg_parser.add_argument('-X', '--slope', type=float, help='set slope', default=0.5)
+    arg_parser.add_argument('-P', '--period', type=int, help='set period', default=220)
+    arg_parser.add_argument('-X', '--slope', type=float, help='set slope', default=0.09)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
     if args.clear:
