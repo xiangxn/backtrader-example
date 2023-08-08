@@ -17,7 +17,7 @@ class BollStrategy(bt.Strategy):
         self.logger.debug(f'[{dt}]: {txt}')
 
     def warning(self, txt):
-        # self.logger.warning(txt)
+        self.logger.warning(txt)
         pass
 
     def __init__(self) -> None:
