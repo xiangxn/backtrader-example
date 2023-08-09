@@ -1,6 +1,7 @@
 from datetime import datetime
 import backtrader as bt
 import logging.config
+import time
 
 from data.dataset import CustomDataset
 from strategies.abbration import Abbration
@@ -27,6 +28,7 @@ def float_range(start, stop, steps):
 
 if __name__ == '__main__':
     logging.config.fileConfig("logging.ini")
+    logging.Formatter.converter = time.gmtime  #utc
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 

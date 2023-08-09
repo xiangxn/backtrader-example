@@ -43,7 +43,7 @@ class BollStrategy(bt.Strategy):
                 self.position_price = injson['position_price']
                 self.stop_loss = injson['stop_loss']
         except Exception as e:
-            print("Failed to read status file: %s", e)
+            self.logger.exception("Failed to read status file: %s", e)
 
     def save_status_data(self):
         if not self.p.production: return
@@ -173,7 +173,7 @@ class BollStrategy(bt.Strategy):
             # if self.close_gt_up() and self.gt_last_mid():
             if self.close_gt_up():
                 self.position_price = data.close[0]
-                if self.p.reversal or self.get_slope() > self.p.slope:
+                if self.p.reversal or (self.get_slope() > self.p.slope):
                     # 空头
                     self.sell(data)
                     self.marketposition = -2
@@ -181,11 +181,11 @@ class BollStrategy(bt.Strategy):
                     # 多头
                     self.buy(data)
                     self.marketposition = 1
-                self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
+                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_slope()},{self.p.slope}]--------------------")
             # if self.close_lt_dn() and self.lt_last_mid():
             if self.close_lt_dn():
                 self.position_price = data.close[0]
-                if self.p.reversal or self.get_slope() > self.p.slope:
+                if self.p.reversal or (self.get_slope() > self.p.slope):
                     # 多头
                     self.buy(data)
                     self.marketposition = 2
@@ -193,7 +193,7 @@ class BollStrategy(bt.Strategy):
                     # 空头
                     self.sell(data)
                     self.marketposition = -1
-                self.warning(f"---------------------------Open: MP:{self.marketposition}, C:{data.close[0]}------------------------------")
+                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_slope()},{self.p.slope}]--------------------")
         elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
@@ -223,4 +223,5 @@ class BollStrategy(bt.Strategy):
                 self.position_price = 0
 
     def stop(self):
-        print('(MA Period_boll %2d %.2f) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.p.slope, self.broker.getcash(), self.trade_count))
+        self.warning('(MA Period_boll %2d %.2f) Ending Value: %.2f, Trade Count: %d' %
+                     (self.p.period_boll, self.p.slope, self.broker.getcash(), self.trade_count))

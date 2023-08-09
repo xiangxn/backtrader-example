@@ -8,6 +8,7 @@ from strategies.boll import BollStrategy
 from utils.helper import init_env, get_env
 import logging.config
 import argparse
+import time
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(prog=sys.argv[0], formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -23,6 +24,7 @@ if __name__ == '__main__':
 
     init_env()
     logging.config.fileConfig("logging.ini")
+    logging.Formatter.converter = time.gmtime  #utc
     cerebro = bt.Cerebro()
 
     # Add the strategy
@@ -68,7 +70,7 @@ if __name__ == '__main__':
 
     # Get our data
     # Drop newest will prevent us from loading partial data from incomplete candles
-    hist_start_date = datetime.utcnow() - timedelta(minutes=950)
+    hist_start_date = datetime.utcnow() - timedelta(minutes=args.period*5)
     data = store.getdata(
         dataname='ETH/USDT',
         name="ETHUSDT",
