@@ -1,6 +1,7 @@
 import json
 import logging
 import signal
+import math
 import backtrader as bt
 from backtrader import Order
 from datetime import datetime
@@ -152,8 +153,9 @@ class BollStrategy(bt.Strategy):
             self.debug(' {} | O: {} H: {} L: {} C: {} V:{}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0]))
 
     def next(self):
-        if self.p.production and not self.live_data:
-            return
+        if math.isnan(self.boll.mid[-6]): return
+
+        if self.p.production and not self.live_data: return
 
         data = self.datas[0]
         self.debug(' {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0],

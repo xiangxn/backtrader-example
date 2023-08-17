@@ -32,7 +32,7 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollStrategy, period_boll=220, slope=0.09)
+    cerebro.addstrategy(BollStrategy, period_boll=220, slope=0.09)#, reversal=True)
     # cerebro.optstrategy(BollStrategy, period_boll=range(170, 270, 5), slope=0.99, debug=False)
     # cerebro.optstrategy(BollStrategy, period_boll=220, slope=float_range(0.05, 0.11, 7), debug=False)
 

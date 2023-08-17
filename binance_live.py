@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     # Get our data
     # Drop newest will prevent us from loading partial data from incomplete candles
-    hist_start_date = datetime.utcnow() - timedelta(minutes=args.period*5)
+    hist_start_date = datetime.utcnow() - timedelta(minutes=(args.period+6)*5)
     data = store.getdata(
         dataname='ETH/USDT',
         name="ETHUSDT",
