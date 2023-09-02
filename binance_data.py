@@ -32,9 +32,9 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollStrategy, period_boll=220, slope=0.09)#, reversal=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=range(170, 270, 5), slope=0.99, debug=False)
-    # cerebro.optstrategy(BollStrategy, period_boll=220, slope=float_range(0.05, 0.11, 7), debug=False)
+    cerebro.addstrategy(BollStrategy, period_boll=210, slope=999)#, reversal=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(205, 220, 1), slope=999, debug=False)
+    # cerebro.optstrategy(BollStrategy, period_boll=210, slope=float_range(0.1, 0.9, 9), debug=False, only_print=True)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # 加载数据
     data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2023-07.csv",
+                         dataname="data/ETHUSDT-1m-2023.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2023, 1, 1),
