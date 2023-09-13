@@ -187,8 +187,8 @@ class BollStrategy(bt.Strategy):
         if self.p.production and not self.live_data: return
 
         data = self.datas[0]
-        self.debug(' {} | O: {} H: {} L: {} C: {} V:{} P: {}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0],
-                                                                     self.position_price))
+        self.debug('C: {} P: {} I: {} W: {} F: {} M: {}'.format(data.close[0], self.position_price, self.initial_margin, self.get_current_win(),
+                                                                self.profit_flag, self.max_win))
 
         # 止损间隔
         if self.stop_loss:
