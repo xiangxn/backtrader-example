@@ -210,14 +210,18 @@ class BollStrategy(bt.Strategy):
             if not self.profit_flag and current_win >= self.initial_margin * self.p.stop_profit:
                 self.profit_flag = True
                 self.max_win = current_win
-            if self.profit_flag and current_win > 0:
-                if current_win > self.max_win:  #如果可能，则继续扩大收益
-                    self.max_win = current_win
-                if (self.max_win - current_win) / self.max_win >= self.p.drawdown:  # 判断止盈
-                    self.close()
-                    self.stop_loss = True
-                    self.clear_data()
-                    return
+            if self.profit_flag:
+                if current_win > 0:
+                    if current_win > self.max_win:  #如果可能，则继续扩大收益
+                        self.max_win = current_win
+                    if (self.max_win - current_win) / self.max_win >= self.p.drawdown:  # 判断止盈
+                        self.close()
+                        self.stop_loss = True
+                        self.clear_data()
+                        return
+                else:
+                    self.profit_flag = False
+                    self.max_win = 0
 
         # 开仓
         if self.marketposition == 0:
