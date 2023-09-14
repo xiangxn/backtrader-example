@@ -32,9 +32,8 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollStrategy, period_boll=210, slope=999)#, reversal=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=range(205, 220, 1), slope=999, debug=False)
-    # cerebro.optstrategy(BollStrategy, period_boll=210, slope=float_range(0.1, 0.9, 9), debug=False, only_print=True)
+    cerebro.addstrategy(BollStrategy, period_boll=220)  #, reversal=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=220, price_diff=range(10, 30, 2), debug=False, only_print=True)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)

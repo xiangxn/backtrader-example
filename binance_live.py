@@ -16,7 +16,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-C', '--clear', action="store_true", help='Whether to clear the status')
     arg_parser.add_argument('-S', '--stake', type=int, help='set stake', default=1)
     arg_parser.add_argument('-P', '--period', type=int, help='set period', default=220)
-    arg_parser.add_argument('-X', '--slope', type=float, help='set slope', default=0.09)
+    arg_parser.add_argument('--min_volume', type=float, help='set min_volume,the unit is ten thousand', default=8)
+    arg_parser.add_argument('--max_volume', type=float, help='set max_volume,the unit is ten thousand', default=30)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
     if args.clear:
@@ -29,7 +30,7 @@ if __name__ == '__main__':
 
     # Add the strategy
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy, production=True, period_boll=args.period, slope=args.slope, reversal=args.reversal)
+    cerebro.addstrategy(BollStrategy, production=True, period_boll=args.period, min_volume=args.min_volume, max_volume=args.max_volume, reversal=args.reversal)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
@@ -70,7 +71,7 @@ if __name__ == '__main__':
 
     # Get our data
     # Drop newest will prevent us from loading partial data from incomplete candles
-    hist_start_date = datetime.utcnow() - timedelta(minutes=(args.period+6)*5)
+    hist_start_date = datetime.utcnow() - timedelta(minutes=(args.period + 6) * 5)
     data = store.getdata(
         dataname='ETH/USDT',
         name="ETHUSDT",

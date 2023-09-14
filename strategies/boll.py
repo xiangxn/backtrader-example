@@ -8,8 +8,8 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("slope", 0.55), ("price_diff", 20), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False),
-              ('multiple', 75), ('stop_profit', 1.4), ('drawdown', 0.2), ('only_print', False))
+    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False),
+              ('only_print', False), ('multiple', 75), ('stop_profit', 1.4), ('drawdown', 0.25), ('min_volume', 8.5), ('max_volume', 30))
 
     status_file = "status.json"
     logger = None
@@ -148,9 +148,6 @@ class BollStrategy(bt.Strategy):
     def get_cotter(self):
         return self.boll.top[0] - self.boll.bot[0]
 
-    def get_slope(self):
-        return abs(self.boll.mid[0] - self.boll.mid[-6])
-
     def calc_initial_margin(self):
         data = self.datas[0]
         if self.marketposition > 0:
@@ -165,6 +162,7 @@ class BollStrategy(bt.Strategy):
         self.profit_flag = False
         self.initial_margin = 0
         self.current_size = 0
+        self.max_win = 0
 
     def get_current_win(self):
         if self.marketposition > 0:
@@ -172,6 +170,16 @@ class BollStrategy(bt.Strategy):
         elif self.marketposition < 0:
             return (self.position_price - self.datas[0].close[0]) * self.current_size
         return 0
+
+    def get_volume(self):
+        data = self.datas[0]
+        return data.volume[0] + data.volume[-1] + data.volume[-2] + data.volume[-3] + data.volume[-4] + data.volume[-5] + data.volume[-6]
+
+    def check_volume(self):
+        volume = self.get_volume()
+        if volume <= (self.p.min_volume * 10000) or volume >= (self.p.max_volume * 10000):
+            return True
+        return False
 
     def prenext(self):
         if self.p.production and not self.live_data:
@@ -199,7 +207,7 @@ class BollStrategy(bt.Strategy):
 
         if self.marketposition != 0:
             current_win = self.get_current_win()
-            if current_win >= self.initial_margin * self.p.stop_profit:
+            if not self.profit_flag and current_win >= self.initial_margin * self.p.stop_profit:
                 self.profit_flag = True
                 self.max_win = current_win
             if self.profit_flag and current_win > 0:
@@ -218,7 +226,7 @@ class BollStrategy(bt.Strategy):
             # if self.close_gt_up() and self.gt_last_mid():
             order = None
             if self.close_gt_up():
-                if self.p.reversal or (self.get_slope() > self.p.slope):
+                if self.p.reversal or self.check_volume():
                     # 空头
                     order = self.sell(data)
                     self.marketposition = -2
@@ -228,10 +236,10 @@ class BollStrategy(bt.Strategy):
                     self.marketposition = 1
                 self.position_price = order.price if order and order.price else data.close[0]
                 self.calc_initial_margin()
-                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_slope()},{self.p.slope}]--------------------")
+                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_volume()}]--------------------")
             # if self.close_lt_dn() and self.lt_last_mid():
             if self.close_lt_dn():
-                if self.p.reversal or (self.get_slope() > self.p.slope):
+                if self.p.reversal or self.check_volume():
                     # 多头
                     order = self.buy(data)
                     self.marketposition = 2
@@ -241,7 +249,7 @@ class BollStrategy(bt.Strategy):
                     self.marketposition = -1
                 self.position_price = order.price if order and order.price else data.close[0]
                 self.calc_initial_margin()
-                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_slope()},{self.p.slope}]--------------------")
+                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_volume()}]--------------------")
         elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
@@ -267,4 +275,5 @@ class BollStrategy(bt.Strategy):
                 self.clear_data()
 
     def stop(self):
-        print('(MA Period_boll %2d %.2f) Ending Value: %.2f, Trade Count: %d' % (self.p.period_boll, self.p.slope, self.broker.getcash(), self.trade_count))
+        print('(MA Period_boll %2d,%.2f) Ending Value: %.2f, Trade Count: %d' %
+              (self.p.period_boll, self.p.price_diff, self.broker.getcash(), self.trade_count))
