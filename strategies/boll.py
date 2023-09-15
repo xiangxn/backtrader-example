@@ -67,13 +67,13 @@ class BollStrategy(bt.Strategy):
         self.save_status_data()
         self.env.runstop()
 
-    def notify_order(self, order):
-        self.debug(
-            f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
-        )
-        if order.exectype == Order.Market and order.status == Order.Completed:
-            # self.position_price = order.executed.price # 无数据
-            pass
+    # def notify_order(self, order):
+    #     self.debug(
+    #         f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
+    #     )
+    #     if order.exectype == Order.Market and order.status == Order.Completed:
+    #         # self.position_price = order.executed.price # 无数据
+    #         pass
 
     def notify_trade(self, trade):
         if trade.isclosed:

@@ -10,6 +10,8 @@ from strategies.bollema import BollEMA
 from strategies.boll import BollStrategy
 from strategies.macdkdj import MACDKDJStrategy
 from strategies.boll_reverser import BollReverser
+from observers.telegram import Telegram
+from utils.helper import init_env
 
 
 class PrintClose(bt.Strategy):
@@ -27,6 +29,7 @@ def float_range(start, stop, steps):
 
 
 if __name__ == '__main__':
+    init_env()
     logging.config.fileConfig("logging.ini")
     logging.Formatter.converter = time.gmtime  #utc
     cerebro = bt.Cerebro(maxcpus=1)
@@ -44,6 +47,8 @@ if __name__ == '__main__':
     # cerebro.optstrategy(BollReverser, period_boll=range(100, 300, 20), debug=False)
 
     # cerebro.optstrategy(BOLLKDJStrategy, price_diff=range(5, 50,5), debug=False)
+
+    # cerebro.addobserver(Telegram)
 
     # 加载数据
     data = CustomDataset(name="ETH",
@@ -67,6 +72,8 @@ if __name__ == '__main__':
     # cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
 
     # cerebro.addwriter(bt.WriterFile, out='log.csv', csv=True)
+
+
 
     cerebro.run()
 

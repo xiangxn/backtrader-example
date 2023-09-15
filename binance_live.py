@@ -9,6 +9,7 @@ from utils.helper import init_env, get_env
 import logging.config
 import argparse
 import time
+from observers.telegram import Telegram
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(prog=sys.argv[0], formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     # Add the strategy
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
     cerebro.addstrategy(BollStrategy, production=True, period_boll=args.period, min_volume=args.min_volume, max_volume=args.max_volume, reversal=args.reversal)
+    cerebro.addobserver(Telegram)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }
