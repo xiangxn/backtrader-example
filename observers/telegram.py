@@ -16,10 +16,12 @@ class Telegram(bt.Observer):
                 continue
             if order.isbuy():
                 self.lines.buy[0] = order.executed.price
-                self.send_message(f"Buy at {order.executed.price}, size {order.executed.size}, value {order.executed.value}")
+                self.send_message(
+                    f"Buy {order.data._name} at {bt.utils.num2date(order.executed.dt)}\n\t price: {order.executed.price}, size: {order.executed.size}")
             else:
                 self.lines.sell[0] = order.executed.price
-                self.send_message(f"Sell at {order.executed.price}, size {order.executed.size}, value {order.executed.value}")
+                self.send_message(
+                    f"Sell {order.data._name} at {bt.utils.num2date(order.executed.dt)}\n\t price: {order.executed.price}, size: {order.executed.size}")
 
     def send_message(self, msg):
         try:
