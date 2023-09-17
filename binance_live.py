@@ -21,8 +21,9 @@ if __name__ == '__main__':
     arg_parser.add_argument('--max_volume', type=float, help='set max_volume,the unit is ten thousand', default=30)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
-    if args.clear:
-        os.remove("./status.json")
+    status_file = "./status.json"
+    if args.clear and os.path.exists(status_file):
+        os.remove(status_file)
 
     init_env()
     logging.config.fileConfig("logging.ini")

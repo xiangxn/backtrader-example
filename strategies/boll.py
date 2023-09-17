@@ -51,7 +51,8 @@ class BollStrategy(bt.Strategy):
                 self.position_price = injson['position_price']
                 self.stop_loss = injson['stop_loss']
         except Exception as e:
-            self.logger.exception("Failed to read status file: %s", e)
+            # self.logger.exception("Failed to read status file: %s", e)
+            pass
 
     def save_status_data(self):
         if not self.p.production: return
