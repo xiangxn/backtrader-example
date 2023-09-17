@@ -212,6 +212,7 @@ class BollStrategy(bt.Strategy):
                     if current_win > self.max_win:  #如果可能，则继续扩大收益
                         self.max_win = current_win
                     if (self.max_win - current_win) / self.max_win >= self.p.drawdown:  # 判断止盈
+                        self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.drawdown}------")
                         self.close()
                         self.stop_loss = True
                         self.clear_data()
