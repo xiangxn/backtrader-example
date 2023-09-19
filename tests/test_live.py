@@ -8,6 +8,7 @@ from utils.helper import init_env, get_env
 import logging.config
 import time
 from observers.telegram import Telegram
+from datetime import datetime, timedelta
 
 
 class OneBuy(bt.Strategy):
@@ -19,16 +20,27 @@ class OneBuy(bt.Strategy):
         dt = dt or self.datas[0].datetime.datetime(0)
         print(f'{dt} {txt}')  # Print date and close
 
+    def notify_data(self, data, status, *args, **kwargs):
+        dn = data._name
+        msg = f'{dn} Data Status: {data._getstatusname(status)}'
+        self.log(msg, datetime.utcnow())
+        if data._getstatusname(status) == 'LIVE':
+            self.live_data = True
+        else:
+            self.live_data = False
+
     def notify_order(self, order):
         self.log(
             f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
         )
 
     def next(self):
+        if not self.live_data: return
         if self.m == 0:
             data = self.datas[0]
             self.buy(data)
             self.m = 1
+            self.log("buy")
 
 
 if __name__ == '__main__':
@@ -81,10 +93,12 @@ if __name__ == '__main__':
 
     # Get our data
     # Drop newest will prevent us from loading partial data from incomplete candles
+    hist_start_date = datetime.utcnow() - timedelta(minutes=(220 + 6) * 5)
     data = store.getdata(
         dataname='ETC/USDT',
         name="ETCUSDT",
         timeframe=bt.TimeFrame.Minutes,
+        fromdate=hist_start_date,
         compression=5,
         ohlcv_limit=99999,
         drop_newest=True,
