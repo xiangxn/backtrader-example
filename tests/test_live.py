@@ -7,7 +7,7 @@ import backtrader as bt
 from utils.helper import init_env, get_env
 import logging.config
 import time
-from observers.telegram import Telegram
+from tools.telegram import Telegram
 from datetime import datetime, timedelta
 
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # Add the strategy
     cerebro.addstrategy(OneBuy)
-    cerebro.addobserver(Telegram)
+    cerebro.addanalyzer(Telegram)
 
     # Create our store
     config = { 'apiKey': get_env('B_APIKEY'), 'secret': get_env('B_SECRET'), 'enableRateLimit': True }

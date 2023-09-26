@@ -3,7 +3,7 @@ import logging
 import signal
 import math
 import backtrader as bt
-from backtrader import Order
+from backtrader import OrderBase
 from datetime import datetime
 
 
@@ -68,7 +68,7 @@ class BollStrategy(bt.Strategy):
         self.save_status_data()
         self.env.runstop()
 
-    def notify_order(self, order):
+    def notify_order(self, order: OrderBase):
         self.debug(
             f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
         )

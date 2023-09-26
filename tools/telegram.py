@@ -3,17 +3,19 @@ import backtrader as bt
 import requests
 
 
-class Telegram(bt.Observer):
+class Telegram(bt.Analyzer):
     lines = ("buy", "sell")
 
     def __init__(self):
         self.chat_id = get_env("CHAT_ID")
         self.bot_token = get_env("BOT_TOKEN")
 
-    def next(self):
-        for order in self._owner._orderspending:
-            if order.data is not self.data or not order.executed.size:
-                continue
+    def start(self):
+        if not self._owner.cerebro.p.quicknotify:
+            print("cerebro does not have quicknotify enabled, so the notification will happen on the next candle.")
+
+    def notify_order(self, order: bt.OrderBase):
+        if order.status == bt.OrderBase.Completed:
             if order.isbuy():
                 self.lines.buy[0] = order.executed.price
                 self.send_message(
