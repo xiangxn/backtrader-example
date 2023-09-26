@@ -4,24 +4,21 @@ import requests
 
 
 class Telegram(bt.Analyzer):
-    lines = ("buy", "sell")
 
     def __init__(self):
         self.chat_id = get_env("CHAT_ID")
         self.bot_token = get_env("BOT_TOKEN")
 
     def start(self):
-        if not self._owner.cerebro.p.quicknotify:
+        if not self.strategy.cerebro.p.quicknotify:
             print("cerebro does not have quicknotify enabled, so the notification will happen on the next candle.")
 
     def notify_order(self, order: bt.OrderBase):
         if order.status == bt.OrderBase.Completed:
             if order.isbuy():
-                self.lines.buy[0] = order.executed.price
                 self.send_message(
                     f"Buy {order.data._name} at {bt.utils.num2date(order.executed.dt)}\n\t price: {order.executed.price}, size: {order.executed.size}")
             else:
-                self.lines.sell[0] = order.executed.price
                 self.send_message(
                     f"Sell {order.data._name} at {bt.utils.num2date(order.executed.dt)}\n\t price: {order.executed.price}, size: {order.executed.size}")
 
