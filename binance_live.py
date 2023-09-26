@@ -28,7 +28,7 @@ if __name__ == '__main__':
     init_env()
     logging.config.fileConfig("logging.ini")
     logging.Formatter.converter = time.gmtime  #utc
-    cerebro = bt.Cerebro()
+    cerebro = bt.Cerebro(quicknotify=True)
 
     # Add the strategy
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
