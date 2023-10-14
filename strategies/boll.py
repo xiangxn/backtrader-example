@@ -8,8 +8,8 @@ from datetime import datetime
 
 
 class BollStrategy(bt.Strategy):
-    params = (("period_boll", 275), ("price_diff", 20), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False),
-              ('only_print', False), ('multiple', 75), ('stop_profit', 1.4), ('drawdown', 0.25), ('min_volume', 8.5), ('max_volume', 30))
+    params = (("period_boll", 245), ("price_diff", 18), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False),
+              ('only_print', False), ('multiple', 75), ('stop_profit', 0.76), ('drawdown', 0.1), ('min_volume', 8.5), ('max_volume', 30))
 
     status_file = "status.json"
     logger = None
@@ -278,5 +278,6 @@ class BollStrategy(bt.Strategy):
                 self.clear_data()
 
     def stop(self):
-        print('(MA Period_boll %2d,%.2f) Ending Value: %.2f, Trade Count: %d' %
-              (self.p.period_boll, self.p.price_diff, self.broker.getcash(), self.trade_count))
+        print('Period_boll: %d,stop_profit: %.2f,drawdown: %.2f,price_diff: %.2f,min_volume: %.2f,max_volume: %d [Ending Value: %.2f,Trade Count: %d]' %
+              (self.p.period_boll, self.p.stop_profit, self.p.drawdown, self.p.price_diff, self.p.min_volume, self.p.max_volume, self.broker.getcash(),
+               self.trade_count))
