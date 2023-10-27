@@ -7,7 +7,7 @@ from tools.strategy import BaseStrategy
 
 
 class BollStrategy(BaseStrategy):
-    params = (("period_boll", 245), ("price_diff", 150), ('small_cotter', 100), ('reversal', False), ('multiple', 75), ('stop_profit', 0.76), ('drawdown', 0.1),
+    params = (("period_boll", 245), ("price_diff", 150), ('small_cotter', 100), ('reversal', False), ('multiple', 75), ('stop_profit', 0.44), ('drawdown', 0.2),
               ('min_volume', 0.9), ('max_volume', 15))
 
     status_file = "status.json"
