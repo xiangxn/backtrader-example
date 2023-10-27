@@ -34,7 +34,7 @@ class BaseStrategy(bt.Strategy):
     def notify_data(self, data, status, *args, **kwargs):
         dn = data._name
         msg = f'{dn} Data Status: {data._getstatusname(status)}'
-        self.info(msg, datetime.utcnow())
+        self.info(msg)
         if data._getstatusname(status) == 'LIVE':
             self.live_data = True
         else:
