@@ -1,40 +1,24 @@
-import json
 import logging
-import signal
+import json
 import math
 import backtrader as bt
 from backtrader import OrderBase
-from datetime import datetime
+from tools.strategy import BaseStrategy
 
 
-class BollStrategy(bt.Strategy):
-    params = (("period_boll", 245), ("price_diff", 18), ('small_cotter', 10), ("production", False), ("debug", True), ('reversal', False),
-              ('only_print', False), ('multiple', 75), ('stop_profit', 0.76), ('drawdown', 0.1), ('min_volume', 8.5), ('max_volume', 30))
+class BollStrategy(BaseStrategy):
+    params = (("period_boll", 245), ("price_diff", 150), ('small_cotter', 100), ('reversal', False), ('multiple', 75), ('stop_profit', 0.76), ('drawdown', 0.1),
+              ('min_volume', 0.9), ('max_volume', 15))
 
     status_file = "status.json"
-    logger = None
-
-    def debug(self, txt, dt=None):
-        dt = dt or self.datas[0].datetime.datetime(0)
-        self.logger.debug(f'[{dt}]: {txt}')
-
-    def warning(self, txt):
-        if not self.p.only_print:
-            self.logger.warning(txt)
-        pass
 
     def __init__(self) -> None:
-        signal.signal(signal.SIGINT, self.sigstop)
+        self.logger = logging.getLogger(__name__)
+        super().__init__()
         self.boll = bt.indicators.bollinger.BollingerBands(self.datas[0], period=self.p.period_boll)
-        self.logger = self.logger if self.logger else logging.getLogger(__name__)
-        if self.p.debug:
-            self.logger.setLevel(logging.DEBUG)
-        else:
-            self.logger.setLevel(logging.WARNING)
         self.marketposition = 0
         self.trade_count = 0
         self.position_price = 0
-        self.live_data = False
         self.stop_loss = False
         self.stop_profit_price = 0
         self.initial_margin = 0
@@ -63,14 +47,9 @@ class BollStrategy(bt.Strategy):
     def start(self):
         self.read_status_data()
 
-    def sigstop(self, a, b):
-        self.warning('Stopping Backtrader...')
-        self.save_status_data()
-        self.env.runstop()
-
     def notify_order(self, order: OrderBase):
         self.debug(
-            f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price}, Size: {order.executed.size}, Alive: {order.alive()}"
+            f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price:.4f}, Size: {order.executed.size}, Alive: {order.alive()}"
         )
 
     def notify_trade(self, trade):
@@ -81,19 +60,12 @@ class BollStrategy(bt.Strategy):
             pnlcomm = trade.pnlcomm
             value = self.broker.getvalue()
             cash = self.broker.getcash()
-            self.debug(f'closed symbol is : {symbol}, total_profit : {pnl}, net_profit : {pnlcomm}, value: {value}, cash: {cash} count: {self.trade_count}')
+            self.info(
+                f'Closed: {symbol}, stop_loss:{self.stop_loss}, total_profit : {pnl:.4f}, net_profit : {pnlcomm:.4f}, value: {value:.4f}, cash: {cash:.4f} count: {self.trade_count}'
+            )
 
         if trade.isopen:
-            self.debug(f'open symbol is : {trade.getdataname()} , price : {trade.price}, size: {trade.size} ')
-
-    def notify_data(self, data, status, *args, **kwargs):
-        dn = data._name
-        msg = f'{dn} Data Status: {data._getstatusname(status)}'
-        self.debug(msg, datetime.utcnow())
-        if data._getstatusname(status) == 'LIVE':
-            self.live_data = True
-        else:
-            self.live_data = False
+            self.info(f'Open: {trade.getdataname()} , price : {trade.price:.4f}, size: {trade.size}, MP: {self.marketposition}, Vol: {self.get_volume():.2f}')
 
     def gt_last_mid(self):
         data = self.datas[0]
@@ -179,22 +151,14 @@ class BollStrategy(bt.Strategy):
             return True
         return False
 
-    def prenext(self):
-        if self.p.production and not self.live_data:
-            for data in self.datas:
-                self.debug(' {} | O: {} H: {} L: {} C: {} V:{}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0]))
-        else:
-            data = self.datas[0]
-            self.debug(' {} | O: {} H: {} L: {} C: {} V:{}'.format(data._name, data.open[0], data.high[0], data.low[0], data.close[0], data.volume[0]))
-
     def next(self):
         if math.isnan(self.boll.mid[-6]): return
 
         if self.p.production and not self.live_data: return
 
         data = self.datas[0]
-        self.debug('C: {} P: {} I: {} W: {} F: {} M: {}'.format(data.close[0], self.position_price, self.initial_margin, self.get_current_win(),
-                                                                self.profit_flag, self.max_win))
+        self.debug('C: {} V: {:.2f} P: {} I: {:.2f} W: {:.2f} F: {} M: {:.2f}'.format(data.close[0], data.volume[0], self.position_price, self.initial_margin,
+                                                                                  self.get_current_win(), self.profit_flag, self.max_win))
 
         # 止损间隔
         if self.stop_loss:
@@ -213,7 +177,6 @@ class BollStrategy(bt.Strategy):
                     if current_win > self.max_win:  #如果可能，则继续扩大收益
                         self.max_win = current_win
                     if (self.max_win - current_win) / self.max_win >= self.p.drawdown:  # 判断止盈
-                        self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.drawdown}------")
                         self.close()
                         self.stop_loss = True
                         self.clear_data()
@@ -239,7 +202,6 @@ class BollStrategy(bt.Strategy):
                     self.marketposition = 1
                 self.position_price = order.price if order and order.price else data.close[0]
                 self.calc_initial_margin()
-                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_volume()}]--------------------")
             # if self.close_lt_dn() and self.lt_last_mid():
             if self.close_lt_dn():
                 if self.p.reversal or self.check_volume():
@@ -252,28 +214,23 @@ class BollStrategy(bt.Strategy):
                     self.marketposition = -1
                 self.position_price = order.price if order and order.price else data.close[0]
                 self.calc_initial_margin()
-                self.warning(f"-----------------Open: MP:{self.marketposition}, C:{data.close[0]}, [{self.get_volume()}]--------------------")
         elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
-                self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.stop_loss = True
                 self.clear_data()
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
-                self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.clear_data()
         elif self.marketposition < 0:
             # 止损
             if data.close[0] - self.position_price > self.p.price_diff:
-                self.warning(f"------Stop Loss: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.stop_loss = True
                 self.clear_data()
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
                 # elif self.down_stop_profit():
-                self.warning(f"------Close: MP:{self.marketposition}, C:{data.close[0]}, P:{self.position_price}, D:{self.p.price_diff}------")
                 self.close()
                 self.clear_data()
 

@@ -3,7 +3,6 @@ import os
 from ccxtbt import CCXTStore
 import backtrader as bt
 from datetime import datetime, timedelta
-from strategies.bollema import BollEMA
 from strategies.boll import BollStrategy
 from utils.helper import init_env, get_env
 import logging.config
@@ -76,8 +75,8 @@ if __name__ == '__main__':
     # Drop newest will prevent us from loading partial data from incomplete candles
     hist_start_date = datetime.utcnow() - timedelta(minutes=(args.period + 6) * 5)
     data = store.getdata(
-        dataname='ETH/USDT',
-        name="ETHUSDT",
+        dataname='BTC/USDT',
+        name="BTCUSDT",
         timeframe=bt.TimeFrame.Minutes,
         fromdate=hist_start_date,
         compression=5,

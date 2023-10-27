@@ -34,11 +34,13 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollStrategy, period_boll=245)  #, reversal=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=range(220, 290, 5), debug=False, only_print=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=125, price_diff=range(10, 30, 2), debug=False, only_print=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=245, price_diff=18, drawdown=0.2, stop_profit=float_range(0.2, 1.6, 16), debug=False, only_print=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=245, price_diff=18, drawdown=float_range(0.05, 0.35, 10), stop_profit=0.76, debug=False, only_print=True)
+    cerebro.addstrategy(BollStrategy, period_boll=265, reversal=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(260, 280, 1), debug=False, only_print=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=range(50, 180, 10), debug=False, only_print=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=150, drawdown=0.2, stop_profit=float_range(0.4, 0.6, 10), debug=False, only_print=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=150, drawdown=float_range(0.05, 0.35, 10), stop_profit=0.44, debug=False, only_print=True)
+    # cerebro.addstrategy(BollStrategy, period_boll=265, price_diff=150, drawdown=0.2, stop_profit=0.44)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(22, 280, 10), price_diff=150, drawdown=0.2, stop_profit=0.44, debug=False, only_print=True)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
@@ -53,8 +55,8 @@ if __name__ == '__main__':
     # cerebro.addobserver(Telegram)
 
     # 加载数据
-    data = CustomDataset(name="ETH",
-                         dataname="data/ETHUSDT-1m-2023-10-07.csv",
+    data = CustomDataset(name="BTC",
+                         dataname="data/BTCUSDT-1m-2023.csv",
                          dtformat=lambda x: datetime.utcfromtimestamp(int(x) / 1000),
                          timeframe=bt.TimeFrame.Minutes,
                          fromdate=datetime(2023, 1, 1),
@@ -70,7 +72,7 @@ if __name__ == '__main__':
     cerebro.broker.setcommission(commission=0.0004, margin=0.1, mult=1.0)
     # cerebro.broker.setcommission(commission=0.00075)
 
-    cerebro.addsizer(bt.sizers.FixedSize, stake=1)
+    cerebro.addsizer(bt.sizers.FixedSize, stake=0.1)
     # cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
 
     # cerebro.addwriter(bt.WriterFile, out='log.csv', csv=True)
