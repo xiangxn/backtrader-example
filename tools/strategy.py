@@ -18,8 +18,12 @@ class BaseStrategy(bt.Strategy):
             self.logger.setLevel(logging.INFO)
         self.live_data = False
 
+    def on_exit(self):
+        pass
+
     def sigstop(self, a, b):
         self.info('Stopping Backtrader...')
+        self.on_exit()
         self.env.runstop()
 
     def debug(self, txt, dt=None):

@@ -38,6 +38,9 @@ class BollStrategy(BaseStrategy):
             # self.logger.exception("Failed to read status file: %s", e)
             pass
 
+    def on_exit(self):
+        self.save_status_data()
+
     def save_status_data(self):
         if not self.p.production: return
         data = { 'marketposition': self.marketposition, 'position_price': self.position_price, 'stop_loss': self.stop_loss }
