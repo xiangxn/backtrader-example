@@ -18,6 +18,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-P', '--period', type=int, help='set period', default=265)
     arg_parser.add_argument('--min_volume', type=float, help='set min_volume,the unit is ten thousand', default=0.9)
     arg_parser.add_argument('--max_volume', type=float, help='set max_volume,the unit is ten thousand', default=15)
+    arg_parser.add_argument('-D', '--price_diff', type=int, help="stop loss price", default=200)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
     status_file = "./status.json"
@@ -31,7 +32,13 @@ if __name__ == '__main__':
 
     # Add the strategy
     # cerebro.addstrategy(BollEMA, period_boll=200, period_ema=99, production=True)
-    cerebro.addstrategy(BollStrategy, production=True, period_boll=args.period, min_volume=args.min_volume, max_volume=args.max_volume, reversal=args.reversal)
+    cerebro.addstrategy(BollStrategy,
+                        production=True,
+                        period_boll=args.period,
+                        price_diff=args.price_diff,
+                        min_volume=args.min_volume,
+                        max_volume=args.max_volume,
+                        reversal=args.reversal)
     cerebro.addanalyzer(Telegram)
 
     # Create our store
