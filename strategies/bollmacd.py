@@ -13,7 +13,7 @@ class BollMACDStrategy(BaseStrategy):
         ('macd_slow_period', 26),
         ('macd_signal_period', 9),
         ("price_diff", 200),
-        ('small_cotter', 100),
+        ('small_cotter', 200),
         ('multiple', 75),
         ('stop_profit', 2.3),
         ('drawdown', 0.15),
