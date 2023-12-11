@@ -16,8 +16,8 @@ if __name__ == '__main__':
     # arg_parser.add_argument('-R', '--reversal', action="store_true", help='Whether to flip the transaction')
     arg_parser.add_argument('-C', '--clear', action="store_true", help='Whether to clear the status')
     arg_parser.add_argument('-S', '--stake', type=float, help='set stake', default=0.1)
-    arg_parser.add_argument('-P', '--period', type=int, help='set period', default=265)
-    arg_parser.add_argument('--critical_dif', type=float, help='DIF critical value', default=32)
+    arg_parser.add_argument('-P', '--period', type=int, help='set period', default=92)
+    arg_parser.add_argument('--critical_dif', type=float, help='DIF critical value', default=45)
     arg_parser.add_argument('-D', '--price_diff', type=int, help="stop loss price", default=200)
     args = arg_parser.parse_args(args=sys.argv[1:])
 

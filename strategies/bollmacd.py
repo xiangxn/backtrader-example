@@ -17,7 +17,7 @@ class BollMACDStrategy(BaseStrategy):
         ('multiple', 75),
         ('stop_profit', 2.3),
         ('drawdown', 0.15),
-        ('critical_dif', 32),
+        ('critical_dif', 45),
     )
 
     status_file = "status.json"

@@ -35,7 +35,7 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollMACDStrategy)
+    cerebro.addstrategy(BollMACDStrategy, period_boll=92)
     # cerebro.addstrategy(BollMACDStrategy, period_boll=265)  #, reversal=True)
     # cerebro.optstrategy(BollStrategy, period_boll=range(260, 280, 1), debug=False, only_print=True)
     # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=range(50, 180, 10), debug=False, only_print=True)
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                          nullvalue=0.0)
     cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=5)
 
-    cerebro.broker.setcash(600.0)
+    cerebro.broker.setcash(1000.0)
 
     # 配置滑点费用,2跳
     # cerebro.broker.set_slippage_fixed(slippage*1)
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     cerebro.broker.setcommission(commission=0.0005, margin=0.1, mult=1.0)
     # cerebro.broker.setcommission(commission=0.00075)
 
-    cerebro.addsizer(bt.sizers.FixedSize, stake=0.1)
+    cerebro.addsizer(bt.sizers.FixedSize, stake=1)
     # cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
 
     # cerebro.addwriter(bt.WriterFile, out='log.csv', csv=True)
