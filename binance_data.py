@@ -77,14 +77,14 @@ if __name__ == '__main__':
     # 配置滑点费用,2跳
     # cerebro.broker.set_slippage_fixed(slippage*1)
 
-    cerebro.broker.setcommission(commission=0.0005, margin=0.1, mult=1.0)
+    cerebro.broker.addcommissioninfo(bt.commissions.CommInfo_Futures_Perc(commission=0.05))
     # cerebro.broker.setcommission(commission=0.00075)
 
-    cerebro.addsizer(bt.sizers.FixedSize, stake=1)
+    cerebro.addsizer(bt.sizers.FixedSize, stake=0.2)
     # cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
 
     # cerebro.addwriter(bt.WriterFile, out='log.csv', csv=True)
 
     cerebro.run()
 
-    # cerebro.plot()
+    cerebro.plot()

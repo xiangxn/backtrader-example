@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # Add the feed
     cerebro.adddata(data)
 
-    cerebro.broker.setcommission(commission=0.0004, margin=0.1, mult=1.0)
+    cerebro.broker.addcommissioninfo(bt.commissions.CommInfo_Futures_Perc(commission=0.05))
     cerebro.addsizer(bt.sizers.FixedSize, stake=args.stake)
 
     # Run the strategy
