@@ -35,9 +35,9 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro(maxcpus=1)
     # cerebro.addstrategy(PrintClose)
 
-    cerebro.addstrategy(BollMACDStrategy, period_boll=92)
+    cerebro.addstrategy(BollMACDStrategy, period_boll=98)
     # cerebro.addstrategy(BollMACDStrategy, period_boll=265)  #, reversal=True)
-    # cerebro.optstrategy(BollStrategy, period_boll=range(260, 280, 1), debug=False, only_print=True)
+    # cerebro.optstrategy(BollStrategy, period_boll=range(60, 280, 10), debug=False, only_print=True)
     # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=range(50, 180, 10), debug=False, only_print=True)
     # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=150, drawdown=0.2, stop_profit=float_range(0.4, 1.6, 10), debug=False, only_print=True)
     # cerebro.optstrategy(BollStrategy, period_boll=265, price_diff=150, drawdown=float_range(0.05, 0.35, 10), stop_profit=0.44, debug=False, only_print=True)
@@ -45,10 +45,10 @@ if __name__ == '__main__':
     # cerebro.optstrategy(BollStrategy, period_boll=range(22, 280, 10), price_diff=150, drawdown=0.2, stop_profit=0.44, debug=False, only_print=True)
 
     # cerebro.addstrategy(BollMACDStrategy, period_boll=265)
-    # cerebro.optstrategy(BollMACDStrategy, period_boll=range(22, 300, 10), debug=False, only_print=True)
+    # cerebro.optstrategy(BollMACDStrategy, period_boll=range(90, 132, 2), debug=False, only_print=True)
     # cerebro.optstrategy(BollMACDStrategy, period_boll=92, critical_dif=range(15, 42, 2), debug=False, only_print=True)
     # cerebro.optstrategy(BollMACDStrategy, period_boll=92, critical_dif=32, drawdown=float_range(0.05, 0.35, 10), debug=False, only_print=True)
-    # cerebro.optstrategy(BollMACDStrategy, period_boll=92, critical_dif=32, drawdown=0.15, stop_profit=float_range(1.8, 2.5, 10), debug=False, only_print=True)
+    # cerebro.optstrategy(BollMACDStrategy, period_boll=98, critical_dif=45, drawdown=0.15, stop_profit=float_range(1.0, 2.5, 10), debug=False, only_print=True)
 
     # cerebro.addstrategy(BollEMA)
     # cerebro.addstrategy(Abbration, boll_period=200)
@@ -87,4 +87,4 @@ if __name__ == '__main__':
 
     cerebro.run()
 
-    cerebro.plot()
+    # cerebro.plot()

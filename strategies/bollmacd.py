@@ -15,7 +15,7 @@ class BollMACDStrategy(BaseStrategy):
         ("price_diff", 200),
         ('small_cotter', 200),
         ('multiple', 75),
-        ('stop_profit', 2.3),
+        ('stop_profit', 1.5),
         ('drawdown', 0.15),
         ('critical_dif', 45),
     )
@@ -232,17 +232,30 @@ class BollMACDStrategy(BaseStrategy):
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
                 self.close()
-                self.stop_loss = True
                 self.clear_data()
+                if self.marketposition == 2:  # 砸止损后杀跌
+                    order = self.sell(data)
+                    self.marketposition = -1
+                    self.position_price = order.price if order and order.price else data.close[0]
+                    self.calc_initial_margin()
+                else:
+                    self.stop_loss = True
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
                 self.close()
                 self.clear_data()
+
         elif self.marketposition < 0:
             # 止损
             if data.close[0] - self.position_price > self.p.price_diff:
                 self.close()
-                self.stop_loss = True
                 self.clear_data()
+                if self.marketposition == -2:  # 拉止损后追涨
+                    order = self.buy(data)
+                    self.marketposition = 1
+                    self.position_price = order.price if order and order.price else data.close[0]
+                    self.calc_initial_margin()
+                else:
+                    self.stop_loss = True
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
                 self.close()
                 self.clear_data()
