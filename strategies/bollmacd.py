@@ -13,12 +13,13 @@ class BollMACDStrategy(BaseStrategy):
         ('macd_slow_period', 26),
         ('macd_signal_period', 9),
         ("price_diff", 200),
-        ('small_cotter', 200),
+        ('small_cotter', 300),
         ('multiple', 75),
         ('stop_profit', 1.5),
         ('drawdown', 0.15),
         ('critical_dif', 45),
         ('limit_value', 100),  # This fits the price setup for BTC
+        ('limit_value_min', 10),  # This fits the price setup for BTC
     )
 
     status_file = "status.json"
@@ -29,6 +30,7 @@ class BollMACDStrategy(BaseStrategy):
         self.boll = bt.indicators.bollinger.BollingerBands(self.datas[0], period=self.p.period_boll)
         self.macd = MACDHisto(self.data, period_me1=self.p.macd_fast_period, period_me2=self.p.macd_slow_period, period_signal=self.p.macd_signal_period)
         self.marketposition = 0
+        self.tmp_position = 0
         self.trade_count = 0
         self.position_price = 0
         self.stop_loss = False
@@ -37,6 +39,7 @@ class BollMACDStrategy(BaseStrategy):
         self.profit_flag = False
         self.current_size = 0
         self.max_win = 0
+        self.current_order = None
 
     def read_status_data(self):
         if not self.p.production: return
@@ -63,9 +66,20 @@ class BollMACDStrategy(BaseStrategy):
         self.read_status_data()
 
     def notify_order(self, order: OrderBase):
-        self.debug(
+        self.info(
             f"Order: {order.ordtypename()}, Status: {order.getstatusname()}, Price: {order.executed.price:.4f}, Size: {order.executed.size}, Alive: {order.alive()}"
         )
+        if self.current_order:
+            if order.status == bt.Order.Completed:
+                self.position_price = self.current_order.price
+                self.current_order = None
+                self.marketposition = self.tmp_position
+                self.tmp_position = 0
+                self.calc_initial_margin()
+            elif order.status == bt.Order.Canceled:
+                self.tmp_position = 0
+                self.current_order = None
+                self.clear_data()
 
     def notify_trade(self, trade):
         if trade.isclosed:
@@ -75,12 +89,12 @@ class BollMACDStrategy(BaseStrategy):
             pnlcomm = trade.pnlcomm
             value = self.broker.getvalue()
             cash = self.broker.getcash()
-            self.info(
+            self.debug(
                 f'Closed: {symbol}, stop_loss:{self.stop_loss}, total_profit : {pnl:.4f}, net_profit : {pnlcomm:.4f}, value: {value:.4f}, cash: {cash:.4f} count: {self.trade_count}'
             )
 
         if trade.isopen:
-            self.info(f'Open: {trade.getdataname()} , price : {trade.price:.4f}, size: {trade.size}, MP: {self.marketposition}')
+            self.debug(f'Open: {trade.getdataname()} , price : {trade.price:.4f}, size: {trade.size}, MP: {self.marketposition}')
 
     def gt_last_mid(self):
         data = self.datas[0]
@@ -166,23 +180,33 @@ class BollMACDStrategy(BaseStrategy):
                     return True
         return False
 
-    def _sell(self, data):
+    def _sell(self, data, lv=None):
         size = self.getsizing(data, isbuy=False)
-        price = round(data.close[0] + self.p.limit_value, 2)
+        limit_value = self.p.limit_value
+        if lv:
+            limit_value = lv
+        price = round(data.close[0] + limit_value, 2)
+        self.position_price = price
+        self.info(f"sell price: {price}")
         return self.sell(data, size=size, price=price, exectype=bt.Order.Limit)
 
-    def _buy(self, data):
+    def _buy(self, data, lv=None):
         size = self.getsizing(data)
-        price = round(data.close[0] - self.p.limit_value, 2)
+        limit_value = self.p.limit_value
+        if lv:
+            limit_value = lv
+        price = round(data.close[0] - limit_value, 2)
+        self.position_price = price
+        self.info(f"buy price: {price}")
         return self.buy(data, size=size, price=price, exectype=bt.Order.Limit)
 
     def _close(self):
         data = self.datas[0]
         size = self.getposition(data, self.broker).size
         if size > 0:
-            return self._sell(data)
+            return self._sell(data, self.p.limit_value_min)
         elif size < 0:
-            return self._buy(data)
+            return self._buy(data, self.p.limit_value_min)
         return None
 
     def next(self):
@@ -193,6 +217,18 @@ class BollMACDStrategy(BaseStrategy):
         data = self.datas[0]
         self.debug('C: {} V: {:.2f} P: {} I: {:.2f} W: {:.2f} F: {} M: {:.2f}'.format(data.close[0], data.volume[0], self.position_price, self.initial_margin,
                                                                                       self.get_current_win(), self.profit_flag, self.max_win))
+
+        # 检查未完成订单
+        if self.current_order:
+            if self.tmp_position == 0:
+                self.current_order = None
+            elif self.tmp_position > 0:
+                if data.close[0] - self.position_price > self.p.limit_value * 1.5:
+                    self.cancel(self.current_order)
+            elif self.tmp_position < 0:
+                if self.position_price - data.close[0] > self.p.limit_value * 1.5:
+                    self.cancel(self.current_order)
+            return
 
         # 止损间隔
         if self.stop_loss:
@@ -224,62 +260,53 @@ class BollMACDStrategy(BaseStrategy):
             if self.get_cotter() <= self.p.small_cotter:
                 return
             # if self.close_gt_up() and self.gt_last_mid():
-            order = None
             if self.close_gt_up():
                 if self.check_direction():
                     # 空头
-                    order = self._sell(data)
-                    self.marketposition = -2
+                    self.current_order = self._sell(data)
+                    self.tmp_position = -2
                 else:
                     # 多头
-                    order = self._buy(data)
-                    self.marketposition = 1
-                self.position_price = order.price if order and order.price else data.close[0]
-                self.calc_initial_margin()
+                    self.current_order = self._buy(data)
+                    self.tmp_position = 1
             # if self.close_lt_dn() and self.lt_last_mid():
             if self.close_lt_dn():
                 if self.check_direction():
                     # 多头
-                    order = self._buy(data)
-                    self.marketposition = 2
+                    self.current_order = self._buy(data)
+                    self.tmp_position = 2
                 else:
                     # 空头
-                    order = self._sell(data)
-                    self.marketposition = -1
-                self.position_price = order.price if order and order.price else data.close[0]
-                self.calc_initial_margin()
+                    self.current_order = self._sell(data)
+                    self.tmp_position = -1
         elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
-                self._close()
+                self.close()
                 mp = self.marketposition
                 self.clear_data()
                 if mp == 2:  # 砸止损后杀跌
-                    order = self._sell(data)
-                    self.marketposition = -1
-                    self.position_price = order.price if order and order.price else data.close[0]
-                    self.calc_initial_margin()
+                    self.current_order = self._sell(data)
+                    self.tmp_position = -1
                 else:
                     self.stop_loss = True
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
-                self._close()
+                self.close()
                 self.clear_data()
 
         elif self.marketposition < 0:
             # 止损
             if data.close[0] - self.position_price > self.p.price_diff:
-                self._close()
+                self.close()
                 mp = self.marketposition
                 self.clear_data()
                 if mp == -2:  # 拉止损后追涨
-                    order = self._buy(data)
-                    self.marketposition = 1
-                    self.position_price = order.price if order and order.price else data.close[0]
-                    self.calc_initial_margin()
+                    self.current_order = self._buy(data)
+                    self.tmp_position = 1
                 else:
                     self.stop_loss = True
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
-                self._close()
+                self.close()
                 self.clear_data()
 
     def stop(self):
