@@ -19,6 +19,7 @@ class BollMACDStrategy(BaseStrategy):
         ('drawdown', 0.15),
         ('critical_dif', 45),
         ('limit_value', 100),  # This fits the price setup for BTC
+        ('limit_value_min', 10),
     )
 
     status_file = "status.json"
@@ -166,23 +167,29 @@ class BollMACDStrategy(BaseStrategy):
                     return True
         return False
 
-    def _sell(self, data):
+    def _sell(self, data, lv=None):
         size = self.getsizing(data, isbuy=False)
-        price = round(data.close[0] + self.p.limit_value, 2)
+        limit_value = self.p.limit_value
+        if lv:
+            limit_value = lv
+        price = round(data.close[0] + limit_value, 2)
         return self.sell(data, size=size, price=price, exectype=bt.Order.Limit)
 
-    def _buy(self, data):
+    def _buy(self, data, lv=None):
         size = self.getsizing(data)
-        price = round(data.close[0] - self.p.limit_value, 2)
+        limit_value = self.p.limit_value
+        if lv:
+            limit_value = lv
+        price = round(data.close[0] - limit_value, 2)
         return self.buy(data, size=size, price=price, exectype=bt.Order.Limit)
 
     def _close(self):
         data = self.datas[0]
         size = self.getposition(data, self.broker).size
         if size > 0:
-            return self._sell(data)
+            return self._sell(data, self.p.limit_value_min)
         elif size < 0:
-            return self._buy(data)
+            return self._buy(data, self.p.limit_value_min)
         return None
 
     def next(self):
@@ -262,7 +269,7 @@ class BollMACDStrategy(BaseStrategy):
                 else:
                     self.stop_loss = True
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
-                self.close()
+                self._close()
                 self.clear_data()
 
         elif self.marketposition < 0:
@@ -279,7 +286,7 @@ class BollMACDStrategy(BaseStrategy):
                 else:
                     self.stop_loss = True
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
-                self.close()
+                self._close()
                 self.clear_data()
 
     def stop(self):
