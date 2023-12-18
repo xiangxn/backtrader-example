@@ -18,6 +18,7 @@ class BollMACDStrategy(BaseStrategy):
         ('stop_profit', 1.5),
         ('drawdown', 0.15),
         ('critical_dif', 45),
+        ('limit_value', 20),
     )
 
     status_file = "status.json"
@@ -165,6 +166,25 @@ class BollMACDStrategy(BaseStrategy):
                     return True
         return False
 
+    def _sell(self, data):
+        size = self.getsizing(data, isbuy=False)
+        price = round(data.close[0] + self.p.limit_value, 2)
+        return self.sell(data, size=size, price=price, exectype=bt.Order.Limit)
+
+    def _buy(self, data):
+        size = self.getsizing(data)
+        price = round(data.close[0] - self.p.limit_value, 2)
+        return self.buy(data, size=size, price=price, exectype=bt.Order.Limit)
+
+    def _close(self):
+        data = self.datas[0]
+        size = self.getposition(data, self.broker).size
+        if size > 0:
+            return self._sell(data)
+        elif size < 0:
+            return self._buy(data)
+        return None
+
     def next(self):
         if self.p.production and not self.live_data: return
 
@@ -191,7 +211,7 @@ class BollMACDStrategy(BaseStrategy):
                     if current_win > self.max_win:  #如果可能，则继续扩大收益
                         self.max_win = current_win
                     if self.check_take_profit(current_win):  # 判断止盈
-                        self.close()
+                        self._close()
                         self.stop_loss = True
                         self.clear_data()
                         return
@@ -208,11 +228,11 @@ class BollMACDStrategy(BaseStrategy):
             if self.close_gt_up():
                 if self.check_direction():
                     # 空头
-                    order = self.sell(data)
+                    order = self._sell(data)
                     self.marketposition = -2
                 else:
                     # 多头
-                    order = self.buy(data)
+                    order = self._buy(data)
                     self.marketposition = 1
                 self.position_price = order.price if order and order.price else data.close[0]
                 self.calc_initial_margin()
@@ -220,46 +240,46 @@ class BollMACDStrategy(BaseStrategy):
             if self.close_lt_dn():
                 if self.check_direction():
                     # 多头
-                    order = self.buy(data)
+                    order = self._buy(data)
                     self.marketposition = 2
                 else:
                     # 空头
-                    order = self.sell(data)
+                    order = self._sell(data)
                     self.marketposition = -1
                 self.position_price = order.price if order and order.price else data.close[0]
                 self.calc_initial_margin()
         elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
-                self.close()
+                self._close()
                 mp = self.marketposition
                 self.clear_data()
                 if mp == 2:  # 砸止损后杀跌
-                    order = self.sell(data)
+                    order = self._sell(data)
                     self.marketposition = -1
                     self.position_price = order.price if order and order.price else data.close[0]
                     self.calc_initial_margin()
                 else:
                     self.stop_loss = True
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
-                self.close()
+                self._close()
                 self.clear_data()
 
         elif self.marketposition < 0:
             # 止损
             if data.close[0] - self.position_price > self.p.price_diff:
-                self.close()
+                self._close()
                 mp = self.marketposition
                 self.clear_data()
                 if mp == -2:  # 拉止损后追涨
-                    order = self.buy(data)
+                    order = self._buy(data)
                     self.marketposition = 1
                     self.position_price = order.price if order and order.price else data.close[0]
                     self.calc_initial_margin()
                 else:
                     self.stop_loss = True
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
-                self.close()
+                self._close()
                 self.clear_data()
 
     def stop(self):

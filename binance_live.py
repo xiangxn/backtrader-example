@@ -19,6 +19,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-P', '--period', type=int, help='set period', default=92)
     arg_parser.add_argument('--critical_dif', type=float, help='DIF critical value', default=45)
     arg_parser.add_argument('-D', '--price_diff', type=int, help="stop loss price", default=200)
+    arg_parser.add_argument('-L', '--limit_value', type=float, help="Set order price difference", default=20)
     args = arg_parser.parse_args(args=sys.argv[1:])
 
     status_file = "./status.json"
@@ -46,6 +47,7 @@ if __name__ == '__main__':
         period_boll=args.period,
         price_diff=args.price_diff,
         critical_dif=args.critical_dif,
+        limit_value=args.limit_value,
     )
 
     cerebro.addanalyzer(Telegram)
