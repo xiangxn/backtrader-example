@@ -211,7 +211,7 @@ class BollMACDStrategy(BaseStrategy):
                     if current_win > self.max_win:  #如果可能，则继续扩大收益
                         self.max_win = current_win
                     if self.check_take_profit(current_win):  # 判断止盈
-                        self._close()
+                        self.close()
                         self.stop_loss = True
                         self.clear_data()
                         return
