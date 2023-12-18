@@ -18,7 +18,7 @@ class BollMACDStrategy(BaseStrategy):
         ('stop_profit', 1.5),
         ('drawdown', 0.15),
         ('critical_dif', 45),
-        ('limit_value', 20),  # This fits the price setup for BTC
+        ('limit_value', 100),  # This fits the price setup for BTC
     )
 
     status_file = "status.json"
