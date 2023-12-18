@@ -291,7 +291,7 @@ class BollMACDStrategy(BaseStrategy):
                 else:
                     self.stop_loss = True
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
-                self.close()
+                self._close()
                 self.clear_data()
 
         elif self.marketposition < 0:
@@ -306,7 +306,7 @@ class BollMACDStrategy(BaseStrategy):
                 else:
                     self.stop_loss = True
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
-                self.close()
+                self._close()
                 self.clear_data()
 
     def stop(self):
