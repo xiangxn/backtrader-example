@@ -251,7 +251,7 @@ class BollMACDStrategy(BaseStrategy):
         elif self.marketposition > 0:
             # 止损
             if self.position_price - data.close[0] > self.p.price_diff:
-                self._close()
+                self.close()
                 mp = self.marketposition
                 self.clear_data()
                 if mp == 2:  # 砸止损后杀跌
@@ -262,13 +262,13 @@ class BollMACDStrategy(BaseStrategy):
                 else:
                     self.stop_loss = True
             elif (self.marketposition == 1 and self.down_across_mid()) or (self.marketposition == 2 and self.up_across_mid()):
-                self._close()
+                self.close()
                 self.clear_data()
 
         elif self.marketposition < 0:
             # 止损
             if data.close[0] - self.position_price > self.p.price_diff:
-                self._close()
+                self.close()
                 mp = self.marketposition
                 self.clear_data()
                 if mp == -2:  # 拉止损后追涨
@@ -279,7 +279,7 @@ class BollMACDStrategy(BaseStrategy):
                 else:
                     self.stop_loss = True
             elif (self.marketposition == -1 and self.up_across_mid()) or (self.marketposition == -2 and self.down_across_mid()):
-                self._close()
+                self.close()
                 self.clear_data()
 
     def stop(self):
